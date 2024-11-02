@@ -1,0 +1,383 @@
+@import url("https://fonts.googleapis.com/css2?family=BioRhyme:wght@200..800&family=Oswald:wght@200..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto+Slab:wght@100..900&display=swap");
+
+* {
+
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    list-style: none;
+    scroll-behavior: smooth;
+    font-family: 'Poppins';
+
+}
+
+:root {
+
+    --body-background: #0e1514;
+    --generic-box-shadow: 0 10px 20px rgba(27, 27, 27, 0.5);
+
+}
+
+body {
+
+    min-height: 100vh;
+    background-image: url("../assets/backgrounds/Untitled\ design.jpg");
+    background-size: cover;
+
+}
+
+nav {
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 1em 5%;
+    box-shadow: var(--generic-box-shadow);
+    backdrop-filter: blur(10px);
+    z-index: 1;
+
+}
+
+nav .logo-image {
+
+    width: 4rem;
+    height: 4rem;
+
+}
+
+nav .logo-text {
+
+    text-transform: uppercase;
+    font-size: 1.5em;
+    color: white;
+    font-weight: 800;
+    transition: 0.2s ease-in-out;
+
+}
+
+main {
+
+    height: 100vh;
+    width: 100vw;
+
+}
+
+.login-container {
+
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    text-align: left;
+    justify-content: center;
+    padding: 70px;
+    
+}
+
+.login-container h1 {
+
+    font-size: 3em;
+    font-weight: 800;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    color: white;
+
+}
+
+.login-container p {
+
+    font-size: 1.1em;
+    letter-spacing: 2px;
+    margin-bottom: 30px;
+    text-transform: capitalize;
+    color: white;
+    font-weight: 500;
+    text-align: left;
+    width: 60%;
+    
+}
+
+.typed {
+
+    background-clip: text;
+    font-size: 1em;
+    text-wrap: nowrap;
+
+}
+
+.login-button:link, .login-button:visited {
+
+    text-transform: uppercase;
+    color: white;
+    padding: 10px 30px;
+    border: 1px solid;
+    border-radius: 100px;
+    display: inline-block;
+    transition: all 0.2s;
+    position: relative;
+    box-shadow: var(--generic-box-shadow);
+
+}
+
+.login-button:hover {
+
+    transform: translateY(-5px);
+    box-shadow: var(--generic-box-shadow);
+
+}
+
+.login-button:active {
+
+    transform: translateY(-3px);
+
+}
+
+.login-button::after {
+
+    content: "";
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+    border-radius: 100px;
+    top: 0;
+    left: 0;
+    position: absolute;
+    z-index: -1;
+    transition: all 0.3s;
+
+}
+
+.login-button:hover::after {
+
+    background-color: rgb(0, 238, 255);
+    transform: scaleX(1.4) scaleY(1.5);
+    opacity: 0;
+
+}
+
+dialog::backdrop {
+
+    backdrop-filter: blur(2px);
+
+}
+
+.close-dialog {
+
+    position: absolute;
+    top: 5px;
+    right: 20px;
+    font-size: 2rem;
+    color: #58bc82;
+    cursor: pointer;
+
+}
+
+.login-wrapper {
+
+    padding: 60px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    border: 2px solid black;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    background-color: var(--body-background);
+    
+}
+
+.login-wrapper form {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+    gap: 1rem;
+    width: 100%;
+    max-width: 300px;
+
+}
+
+form .input-span {
+
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+}
+
+form input[type = "text"],
+form input[type = "password"] {
+
+    color: white;
+    border-radius: 0.5rem;
+    padding: 1rem 0.75rem;
+    width: 100%;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #9c9c9c60;
+    outline: 2px solid #707070;
+
+}
+
+form input[type = "text"]:focus,
+form input[type = "password"]:focus {
+
+    outline: 3px solid #58bc82;
+
+}
+
+.password-container {
+
+    position: relative;
+    width: 100%;
+
+}
+
+.password-container input {
+
+    width: calc(100% - 40px);
+    padding-right: 40px;
+
+}
+
+.toggle-password {
+
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+
+}
+
+.toggle-password i {
+
+    color: #58bc82;
+    font-size: 1.2rem;
+
+}
+
+.label {
+
+    align-self: flex-start;
+    color: #58bc82;
+    font-weight: 600;
+    margin-top: 20px;
+
+}
+
+form .submit {
+
+    padding: 1rem 0.75rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 3rem;
+    background-color: #707070;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 300ms;
+    font-weight: 600;
+    font-size: 0.9rem;
+
+}
+
+form .submit:hover {
+
+    background-color: #58bc82;
+    color: black;
+
+}
+
+form .description-text {
+
+    background-clip: text;
+    color: #80AF81;
+    text-align: center;
+
+}
+
+.forget-password a {
+
+    text-decoration: none;
+    color: #58bc82;
+
+}
+
+/* FOR MOBILE DEVICES */
+@media (max-width: 767px){
+
+    nav .logo-text {
+
+        display: none;
+    
+    }
+
+    .typed {
+
+        font-size: 1em;  
+    
+    }
+
+    .login-container {
+        
+        align-items: center;
+        text-align: center;
+        
+    }
+
+    .login-container h1 {
+
+        font-size: 1.5em;
+    
+    }
+    
+    .login-container p {
+    
+        font-size: 0.7em;
+        width: 90%;
+        text-align: center;
+        
+    }
+
+}
+
+/* FOR TABLETS */
+@media (min-width: 767px) and (max-width: 991px){
+
+
+
+}
+
+/* FOR LAPTOPS */
+@media (min-width: 992px) and (max-width: 1199px){
+
+    
+
+}
+
+/* FOR DESKTOPS */
+@media (min-width: 1200px){
+
+    nav .logo-text {
+
+        text-transform: uppercase;
+        font-size: 1.5em;
+        font-weight: 800;
+        transition: 0.2s ease-in-out;
+    
+    }
+
+}

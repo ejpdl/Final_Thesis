@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Admin Page </title>
+    <link rel = "icon" type = "image/png" href = "../assets/logo/euC.png">
+    <link rel = "stylesheet" href = "dashboard.css">
+</head>
+<body>
+
+    <div class = "grid-container">
+
+        <!-- //ANCHOR - SIDEBAR -->
+        <aside>
+
+            <h2> AchieveHub </h2>
+            <ul class = "menu">
+
+                <li> 
+                    <a href = "../Admin_Page/dashboard.html" class = "aside-link current"> Dashboard </a> 
+                </li>
+
+                <li> 
+                    <a href = "credentials.html" class = "aside-link" id = "sectionsLink"> Credentials </a>
+                </li>
+
+                <li> 
+                    <a href = "add_section.html" class = "aside-link" id = "sectionsLink"> Sections </a>
+                </li>
+
+            </ul>
+
+            <div>
+
+                <a href = "../Log_In_Page/log_in.html">
+                    <button class = "logout-button"> Log Out </button>
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- //ANCHOR - MAIN -->
+        <main>
+
+            <div class = "main-container">
+
+                <header>
+
+                    <h1> Welcome back, <span class = "admin-name"> Admin </span> </h1>
+                    <p> Your Digital Portfolio </p>
+
+                    <div class = "search-profile">
+
+                        <input type = "search" placeholder = "Search something...">
+                        <div class = "profile">
+
+                            <img src = "../assets/profiles/2x2(EJ).jpg" alt = "teacher-profile">
+                            
+                        </div>
+
+                    </div>
+
+                </header>
+
+                <section class = "dashboard">
+
+                    <h2> ADMIN DASHBOARD </h2>
+
+                    <div class = "grid-class">
+
+                        <div class = "class-card">
+                            
+                            <div>
+                                <h5> Log In Credentials </h5>
+                            </div>
+
+                            <a href = "credentials.html" class = "view-class-button"> Open </a>
+
+                        </div>
+                        
+                        <div class = "class-card">
+                                
+                            <div>
+                                <h5> Add Class Section </h5>
+                            </div>
+    
+                            <a href = "add_section.html" class = "view-class-button"> Open </a>
+    
+                        </div>
+                        
+                    </div>
+
+                </section>
+
+            </main>
+
+        </div>
+
+    </div>
+
+
+</body>
+</html>

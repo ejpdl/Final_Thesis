@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Log In Page </title>
+    <link rel = "icon" type = "image/png" href = "../assets/logo/euC.png">
+    <link rel = "stylesheet" href = "log_in.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- For Icons -->
+
+</head>
+<body>
+
+    <!-- //ANCHOR - NAVBAR -->
+    <nav>
+
+        <a href = "#Logo">
+            <img src = "../assets/logo/euC.png" alt = "logo" class = "logo-image">
+        </a>
+
+        <a href = "#MSEUF" class = "logo-text">
+            <span> Manuel S. Enverga Candelaria Quezon </span>
+        </a>
+
+    </nav>
+
+    <!-- //ANCHOR - MAIN PAGE -->
+    <main>
+
+        <div class = "login-container">
+
+            <h1> This is <span class = "typed"> </span> </h1>
+
+            <p class = "sub-title">
+
+                This digital space is exclusively for Grade 7 students to store and secure their completed output for the current academic year.
+
+            </p>
+
+            <div class = "login-button-container">
+
+                <a href = "#" class = "login-button" onclick = "showLogInDialog(true)"> Log In </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <dialog id = "login-dialog">
+
+        <div class = "login-wrapper">
+
+            <span class = "close-dialog" id = "close-dialog"> &times; </span>
+
+            <form id = "login-form">
+
+                <span class = "input-span">
+
+                    <label for = "id" class = "label"> Student ID / Employee ID </label>
+                    <input type = "text" name = "id" id = "id" placeholder = "A00-0000" required />
+
+                </span>
+
+                <span class = "input-span">
+
+                    <label for = "password" class = "label"> Password </label>
+
+                    <div class = "password-container">
+
+                        <input type = "password" name = "password" id = "password" placeholder = "YYYY-MM-DD" required />
+
+                        <span class = "toggle-password">
+                            <i class = "fa fa-eye" id = "togglePassword"></i>
+                        </span>
+
+                    </div>
+
+                </span>
+
+                <span class = "description-text">
+                    Your initial password is your birthdate in this format YYYY-MM-DD.
+                </span>
+
+                <span class = "forget-password">
+                    <a href = "#forgot_password"> Forgot Password? </a>
+                </span>
+
+                <input class = "submit" type = "submit" value = "Log In" />
+
+            </form>
+
+        </div>
+
+    </dialog>
+
+
+    <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script> <!-- For auto-typed-->
+    <script src = "log_in_fetch.js"></script>
+    <script src = "log_in_functions.js"></script>
+
+</body>
+</html>

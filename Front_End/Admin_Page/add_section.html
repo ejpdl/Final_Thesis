@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Sections </title>
+    <link rel = "icon" type = "image/png" href = "../assets/logo/euC.png">
+    <link rel = "stylesheet" href = "add_section.css">
+</head>
+<body>
+
+    <div class = "grid-container">
+
+        <!-- //ANCHOR - SIDEBAR -->
+        <aside>
+
+            <h2> AchieveHub </h2>
+            <ul class = "menu">
+
+                <li> 
+                    <a href = "../Admin_Page/dashboard.html" class = "aside-link"> Dashboard </a> 
+                </li>
+
+                <li> 
+                    <a href = "credentials.html" class = "aside-link" id = "sectionsLink"> Credentials </a>
+                </li>
+
+                <li> 
+                    <a href = "add_section.html" class = "aside-link current" id = "sectionsLink"> Sections </a>
+                </li>
+
+            </ul>
+
+            <div>
+
+                <a href = "../Log_In_Page/log_in.html">
+                    <button class = "logout-button"> Log Out </button>
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- //ANCHOR - MAIN -->
+        <main>
+
+            <div class = "main-container">
+
+                <header>
+
+                    <h1> Welcome back, <span class = "admin-name"> Admin </span> </h1>
+                    <p> Your Digital Portfolio </p>
+
+                    <div class = "search-profile">
+
+                        <input type = "search" placeholder = "Search something...">
+                        <div class = "profile">
+
+                            <img src = "../assets/profiles/2x2(EJ).jpg" alt = "teacher-profile">
+                            
+                        </div>
+
+                    </div>
+
+                </header>
+
+                <section class = "section-content">
+
+                    <div class = "section-header">
+
+                        <h2> Add New Section </h2>
+                        <p id = "studentCount"> Count </p>
+
+                        <div class = "sort-container">
+
+                            <label for = "sort"> Sort by: </label>
+                            <select id = "sort">
+                                <option value = "studentID"> ID </option>
+                                <option value = "fname"> Grade Lvl. </option>
+                                <option value = "lname"> Section </option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <table class = "student-table" id = "userTable">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Grade Level</th>
+                                <th>Section</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+
+                    </table>
+
+                    
+                    <button onclick = "showAddUserForm(true)" class = "add-button"> Add New Grade and Section </button>
+
+                        <dialog id = "Add-User-Dialog">
+
+                            <div class = "container">
+
+                                <div class = "form-add-container" id = "addUserForm">
+
+                                    <h2> Add Grade Level and Sections </h2>
+                                    <hr></hr>
+
+                                    <div class = "form-group" style = "display:none">
+
+                                        <label for = "id"> ID: </label>
+                                        <input type = "text" id = "id" readonly>          
+
+                                    </div>
+
+                                            <div class = "form-group">
+
+                                                <label for = "grade"> Grade Level </label>
+                                                <select id = "grade">
+                                                    <option value = ""> -Select Grade Level- </option>
+                                                    <option value = "7"> 7 </option>
+                                                    <option value = "8"> 8 </option>
+                                                    <option value = "9"> 9 </option>
+                                                    <option value = "10"> 10 </option>
+                                                </select> 
+
+                                            </div>
+
+                                            <div class = "form-group">
+
+                                                <label for = "section"> Section </label>
+                                                <div id="sectionContainer">
+                                                    <input type="text" id="section" placeholder="Enter Section">
+                                                </div>
+                                                
+                                            </div>   
+
+                                    <div class = "update-cancel-button">
+                                        <button type = "button" class = "confirm-button" id = "confirm-button" onclick = "addGradeSection()"> Update Information </button>
+                                        <button type = "button" class = "cancel-button" id = "cancel-button" onclick = "showAddUserForm(false)"> Cancel </button>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </dialog>       
+
+                </section>
+
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <script src = "add_section_function.js"></script>
+    <script src = "add_section_fetch.js"> </script>
+
+</body>
+</html>

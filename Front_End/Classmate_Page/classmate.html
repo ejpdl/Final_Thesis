@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Classmate Page </title>
+    <link rel = "icon" type = "image/png" href = "../assets/logo/euC.png">
+    <link rel = "stylesheet" href = "classmate.css">
+</head>
+<body>
+
+
+    <!-- //ANCHOR - NAVIGATION BAR -->
+    <nav> 
+
+        <a href = "#">
+            <img src = "../assets/logo/euC.png" alt = "MSEUF logo" class = "logo-image">
+            <h1> Manuel S. Enverga Candelaria Quezon Inc.</h1>
+        </a>
+
+        <a href = "javascript:void(0)" onclick = "history.back()" rel="noopener noreferrer">
+            <button class = "log-out-button"> Back to Profile </button>
+        </a>
+
+    </nav>
+
+    
+    <!-- //ANCHOR - MAIN PAGE -->
+    <main>
+
+        <div class = "container">
+
+            <div class = "profile-info">
+
+                <h1 id = "classmate-name"> Classmate Name </h1>
+                <p> <i id = "gradesection"> Grade and Section </i></p>
+                <p id = "bio"> About Me </p>
+
+                <div class = "demographics">
+
+                    <ul>
+                        <li>
+                            > <span> Birthday </span>
+                        </li>
+                        <li>
+                            > <span> Email </span>
+                        </li>
+                    </ul>
+
+                </div>
+
+                <a href = "../Artifacts_Page_Classmate/artifacts_classmate.html" onclick="setClassmateId()">
+                    <button class = "button-artifacts"> See <span id = name-button> </span> Artifacts </button>
+                </a>
+
+            </div>
+
+            <div class = "classmate-profile">
+
+                <img id = "profile" src = "" class = "profile" alt = "Classmate Profile">
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- //ANCHOR - FOOTER -->
+    <footer>
+
+        <div class = "footer-text">
+
+            Lorem ipsum dolor, sit amet consectetur adipisicing elit. Reprehenderit ex id nisi dignissimos similique? Et reiciendis sed cum temporibus tempora.
+
+        </div>
+
+    </footer>
+    
+    <script src = "classmate_function.js"></script>
+    <script src = "classmate_fetch.js"></script>
+
+</body>
+</html>

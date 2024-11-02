@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 7 - Lirio </title>
+    <link rel = "icon" type = "image/png" href = "../assets/logo/euC.png">
+    <link rel = "stylesheet" href = "7_Lirio.css">
+</head>
+<body>
+
+    <div class = "grid-container">
+
+        <!-- //ANCHOR - SIDEBAR -->
+        <aside>
+
+            <h2> AchieveHub </h2>
+            <ul class = "menu">
+
+                <li> 
+                <a href = "../Teacher_Page/teacher.html" class = "aside-link"> Dashboard </a> 
+                </li>
+
+                <li> <a href = "#" class = "aside-link current" id = "sectionsLink"> Sections </a>
+
+                    <ul class = "submenu" id = "sectionsMenu">
+
+                        <li> 
+                            <a href = "../Sections_Page/7_Lirio.html" class = "aside-link current"> 7 - Lirio </a> 
+                        </li>
+
+                        <li> <a href = "../Sections_Page/7_hyacinth.html" class = "aside-link"> 7 - Hyacinth </a> </li>
+
+                        <li> <a href = "#" class = "aside-link"> 7 - Freesia </a> </li>
+
+                    </ul>
+                
+                </li>
+
+            </ul>
+
+            <div>
+
+                <a href = "../Log_In_Page/log_in.html">
+                    <button class = "logout-button"> Log Out </button>
+                </a>
+
+            </div>
+
+        </aside>
+
+        <!-- //ANCHOR - MAIN PAGE -->
+        <main>
+
+            <div class = "main-container">
+
+                <header>
+
+                    <h1> Welcome back, <br> Ma'am <span id = "teacher-name" class = "teacher-name"> Teacher's Name </span> </h1>
+                    <p> Your Digital Portfolio </p>
+
+                    <div class = "search-profile">
+
+                        <input type = "search" placeholder = "Search something...">
+                        <div class = "profile">
+
+                            <img src = "../assets/profiles/2x2(EJ).jpg" alt = "teacher-profile">
+                            
+                        </div>
+
+                    </div>
+
+                </header>
+
+                <section class = "section-content">
+
+                    <div class = "section-header">
+
+                        <h2> 7 - Lirio </h2>
+                        <p id = "student-count"> Counts </p>
+
+                        <div class = "sort-container">
+
+                            <label for = "sort"> Sort by: </label>
+                            <select id = "sort">
+                                <option value = "studentID"> Student ID </option>
+                                <option value = "fname"> First Name </option>
+                                <option value = "lname"> Last Name </option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <table class = "student-table">
+
+                        <thead>
+                            <tr>
+                                <th> Student ID </th>
+                                <th> Name </th>
+                                <th> Grade and Section </th>
+                                <th> Visit </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            
+                        </tbody>
+
+                    </table>
+
+                </section>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <script src = "7_Lirio_fetch.js"></script>
+    <script src = "7_Lirio_function.js"></script>
+    
+</body>
+</html>

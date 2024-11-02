@@ -1,0 +1,236 @@
+@import url("https://fonts.googleapis.com/css2?family=BioRhyme:wght@200..800&family=Oswald:wght@200..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto+Slab:wght@100..900&display=swap");
+
+* {
+
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    list-style: none;
+    scroll-behavior: smooth;
+    font-family: 'Poppins';
+
+}
+
+:root {
+
+    --body-background: rgb(24, 24, 24);
+
+}
+
+body {
+
+    min-height: 100vh;
+    min-width: 100%;
+    background-color: #203429;
+    color: white;
+
+}
+
+/* NAVBAR SECTION */
+nav { 
+
+    height: 5em;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 1rem 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #111d16;
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+  
+}
+
+nav .logo-image {
+
+    height: 3.5rem;
+    width: 3.5rem;
+
+}
+
+nav h1 {
+
+    position: absolute;
+    top: 0;
+    margin-top: 20px;
+    margin-left: 4em;
+    text-decoration: none;
+    color: white;
+    text-transform: uppercase;
+    
+}
+
+nav .log-out-button {
+
+    font-family: inherit;
+    color: white;
+    background: none;
+    border: 2px solid;
+    border-radius: 10px;
+    padding: 0.3em 1.3em;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 10px 20px rgba(27, 27, 27, 0.5);
+    position: relative;
+    overflow: hidden;
+    transition: color 0.5s;
+    z-index: 1;
+    
+}
+
+.log-out-button:before {
+
+    content: "";
+    position: absolute;
+    z-index: -1;
+    background: #588157;
+    height: 150px;
+    width: 200px;
+    border-radius: 50%;
+
+}
+
+.log-out-button:hover {
+
+    color: white;
+    
+}
+
+.log-out-button:before {
+
+    top: 100%;
+    left: 100%;
+    transition: all 0.7s;
+
+}
+
+.log-out-button:hover:before {
+
+    top: -30px;
+    left: -30px;
+
+}
+
+.log-out-button:active:before {
+
+    background: #588157;
+    transition: background 0s;
+
+}
+
+.container {
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+
+}
+
+.profile-info {
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    margin-left: 8em;
+
+}
+
+.profile-info h1 {
+
+    color: white;
+    font-size: 3em;
+    margin-top: 3em;
+    margin-bottom: 0.1em; 
+
+}
+
+.profile-info p {
+
+    font-size: 1em;
+    text-align: left;
+    margin-bottom: 30px;
+    width: 80%;
+
+}
+
+.profile-info ul {
+
+    list-style: none;
+    padding: 10px;
+    font-size: 1em;
+    margin-bottom: 30px;
+
+}
+
+.profile-info ul li {
+
+    margin-bottom: 10px;
+
+}
+
+.button-artifacts {
+
+    padding: 15px 25px;
+    background-color: none;
+    border: none;
+    border-radius: 10px;
+    color: black;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+    width: 20em;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.7); 
+    transition: background-color 0.4s ease-in-out, transform 0.4s ease-in-out, color 0.4s ease-in-out;
+
+}
+
+.button-artifacts:hover {
+
+    background-color: maroon;
+    transform: translateY(-10px);
+    transition: 0.4s ease-in;
+    color: white;
+
+}
+
+.classmate-profile .profile {
+
+    width: 25vw;
+    height: 50vh;
+    border-radius: 10px;
+    border: 2px solid maroon;
+    margin-top: 30%;
+    margin-right: 9em;
+
+}
+
+.footer-text {
+
+    text-align: center;
+    padding: 2em;
+    color: #888;
+    font-size: 1.1em;
+    margin-top: 30px;
+
+}
+
+::-webkit-scrollbar {
+
+    width: 15px;
+    background-color: #588157;
+
+}
+
+::-webkit-scrollbar-thumb {
+
+    background: #344E41;
+    border-radius: 1em;
+
+}

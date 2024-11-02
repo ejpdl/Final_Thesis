@@ -1,0 +1,443 @@
+@import url("https://fonts.googleapis.com/css2?family=BioRhyme:wght@200..800&family=Oswald:wght@200..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto+Slab:wght@100..900&display=swap");
+
+* {
+
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    list-style: none;
+    scroll-behavior: smooth;
+    font-family: 'Poppins';
+
+}
+
+body {
+
+    min-height: 100vh;
+    background-color: #e7f2fd;
+
+}
+
+nav { 
+
+    height: 5em;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 1rem 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 20px rgba(27, 27, 27, 0.5);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+  
+}
+
+nav .logo-image {
+
+    height: 3.5rem;
+    width: 3.5rem;
+
+}
+
+nav h1 {
+
+    position: absolute;
+    top: 0;
+    margin-top: 20px;
+    margin-left: 4em;
+    text-decoration: none;
+    color: black;
+    text-transform: uppercase;
+    
+}
+
+nav .log-out-button {
+
+    color: black;
+    background: none;
+    border: 2px solid;
+    border-radius: 10px;
+    padding: 0.3em 1.3em;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 10px 20px rgba(27, 27, 27, 0.5);
+    position: relative;
+    overflow: hidden;
+    transition: color 0.5s;
+    z-index: 1;
+    
+}
+
+.log-out-button:before {
+
+    content: "";
+    position: absolute;
+    z-index: -1;
+    background: #588157;
+    height: 150px;
+    width: 200px;
+    border-radius: 50%;
+
+}
+
+.log-out-button:hover {
+
+    color: white;
+    
+}
+
+.log-out-button:before {
+
+    top: 100%;
+    left: 100%;
+    transition: all 0.7s;
+
+}
+
+.log-out-button:hover:before {
+
+    top: -30px;
+    left: -30px;
+
+}
+
+.log-out-button:active:before {
+
+    background: #588157;
+    transition: background 0s;
+
+}
+
+.container {
+
+    position: relative;
+    max-width: 1350px;
+    width: 100%;
+    padding: 20px;
+    margin: 100px auto;
+
+}
+
+button {
+
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: white;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+
+}
+
+button.active {
+
+    background: maroon;
+    color: white;
+
+}
+
+.filter-buttons {
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+    flex-wrap: wrap;
+    width: 100%;
+
+}
+
+.filter-buttons h1 {
+
+    flex: 1 0 auto;
+    text-transform: uppercase;
+    color: maroon;
+
+}
+
+.filter-cards {
+
+    margin-top: 25px;
+    display: flex;
+    gap: 1.5em;
+    flex-wrap: wrap;
+
+}
+
+.form {
+
+    background-color: white;
+    padding: 2rem .7rem .7rem .7rem;
+    text-align: center;
+    max-width: 320px;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+}
+  
+.form-title {
+
+    color: #000000;
+    font-size: 1.8rem;
+    font-weight: 500;
+
+}
+  
+.form-paragraph {
+
+    margin-top: 10px;
+    font-size: 0.9375rem;
+    color: rgb(105, 105, 105);
+
+}
+  
+.drop-container {
+
+    background-color: #fff;
+    position: relative;
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    margin-top: 2.1875rem;
+    border-radius: 10px;
+    border: 2px dashed rgb(171, 202, 255);
+    color: #444;
+    cursor: pointer;
+    transition: background .2s ease-in-out, border .2s ease-in-out;
+
+}
+  
+.drop-container:hover {
+
+    background: rgba(0, 140, 255, 0.164);
+    border-color: rgba(17, 17, 17, 0.616);
+
+}
+  
+.drop-container:hover .drop-title {
+
+    color: #222;
+
+}
+  
+.drop-title {
+
+    color: #444;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    transition: color .2s ease-in-out;
+
+}
+  
+#file-input {
+
+    width: 350px;
+    max-width: 100%;
+    color: #444;
+    padding: 2px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid rgba(8, 8, 8, 0.288);
+
+}
+  
+#file-input::file-selector-button {
+
+    margin-right: 20px;
+    border: none;
+    background: #084cdf;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    transition: background .2s ease-in-out;
+
+}
+  
+#file-input::file-selector-button:hover {
+
+    background: #0d45a5;
+  
+}
+ 
+.title, .subject, .grades {
+
+    font-size: 0.9em;
+
+}
+
+.grades {
+
+
+
+}
+
+
+.filter-cards [type = "text"],
+.filter-cards select {
+
+    margin-top: 20px;
+    margin-left: 2px;
+    color: black;
+    border-radius: 3px;
+    padding: 0.1em;
+    width: 30%;
+    border: none;
+    background-color: white;
+    outline: 2px solid #707070;
+
+}
+
+.filter-cards [type = "number"]{
+
+    margin-top: 20px;
+    margin-left: 20px;
+    color: black;
+    border-radius: 3px;
+    padding: 0.1em;
+    width: 30%;
+    border: none;
+    background-color: white;
+    outline: 2px solid #707070;
+
+}
+
+.upload-cancel-button {
+
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+
+
+}
+
+.upload-cancel-button .upload {
+
+    background-color: maroon;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.8em;
+    margin-top: 10px;
+    margin-right: 5px;
+
+}
+
+.upload-cancel-button .cancel {
+
+    background-color: gray;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.8em;
+    margin-top: 10px;
+    margin-left: 5px;
+
+}
+
+.card {
+
+    flex-grow: 1;
+    flex-basis: 300px;
+    background-color: white;
+    padding: 0.5em;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+}
+
+.card img {
+
+    width: 100%;
+    height: 210px;
+    border-radius: 8px 8px 0 0;
+    object-fit: cover;
+
+}
+
+.card video {
+
+    width: 100%;
+    height: 210px;
+    border-radius: 8px 8px 0 0;
+    object-fit: cover;
+
+}
+
+.card-body {
+
+    padding: 15px 20px 20px;
+
+}
+
+.card-title {
+
+    font-size: 1em;
+    font-weight: 600;
+    color: maroon;
+
+}
+
+.card-text {
+
+    font-size: 0.8em;
+    color: #333;
+
+}
+
+.card.hide {
+
+    display: none;
+
+}
+
+.btn-danger {
+
+    background-color: #588157;
+    color: black;
+    margin-top: 30px;
+    margin-bottom: -10px;
+    margin-left: -2px;  
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;  
+
+}
+
+.btn-danger:hover {
+
+    background-color: #344E41;
+    color: white;
+
+}
+
+.btn-danger:active {
+
+    background-color: #222;
+
+}
+
+::-webkit-scrollbar {
+
+    width: 15px;
+    background-color: #588157;
+
+}
+
+::-webkit-scrollbar-thumb {
+
+    background-color: #344E41;
+    border-radius: 1em; 
+
+}
+
+

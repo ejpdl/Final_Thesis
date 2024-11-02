@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Artifacts </title>
+    <link rel = "icon" type = "image/png" href = "../assets/logo/euC.png">
+    <link rel = "stylesheet" href = "artifacts.css">
+</head>
+<body>
+
+    <nav> 
+
+        <a href = "#">
+            <img src = "../assets/logo/euC.png" alt = "MSEUF logo" class = "logo-image">
+            <h1> Manuel S. Enverga Candelaria Quezon Inc.</h1>
+        </a>
+
+        <a href = "javascript:void(0)" onclick = "history.back()" rel="noopener noreferrer">
+            <button class = "log-out-button"> Back to Profile </button>
+        </a>
+
+    </nav>
+
+    <div class = "container">
+        
+        <div class = "filter-buttons">
+            <h1> Quizzes </h1>
+            <button class = "active" data-name = "all"> Show All </button>
+            <button data-name = "english"> English </button>
+            <button data-name = "filipino"> Filipino </button>
+            <button data-name = "math"> Math </button>
+            <button data-name = "science"> Science </button>
+            <button data-name = "mapeh"> MAPEH </button>
+        </div>
+
+        <div class = "filter-cards" id = "uploadedImagesContainer">
+
+            <form class = "form" id = "uploadForm" action = "http://localhost:5000/upload/quiz" method = "POST" enctype = "multipart/form-data">
+
+                <span class = "form-title"> Upload your file </span>
+            
+                <p class = "form-paragraph">
+                    Upload Something...
+                </p>
+       
+                <label for = "title-input" class = "title"> Title: </label>
+                <input type = "text" name = "title" id = "title-input" placeholder = "Quiz#1" required />
+            
+                <label for = "subject-input"  class = "subject"> Subject: </label>
+                <select name = "subject" id = "subject-input" required>
+                    <option value = "english"> English </option>
+                    <option value = "filipino"> Filipino </option>
+                    <option value = "math"> Math </option>
+                    <option value = "science"> Science </option>
+                    <option value = "mapeh"> MAPEH </option>
+                </select>
+
+                <label for = "grades"  class = "grades"> Grade: </label>
+                <input type = "number" name = "grade" placeholder = "99.9" required />
+            
+                <label for = "file-input" class = "drop-container">
+                    <span class = "drop-title"> Drop files here </span>
+                    or
+                    <input type = "file" name = "file" accept = ".pdf, .docx, .png, .jpeg, .mp4, .avi, .mkv, .jpg" required = "" id = "file-input">
+                </label>
+            
+                <div class = "upload-cancel-button">
+                    <button class = "upload" type = "submit">Upload</button>
+                    <button class = "cancel" type = "reset">Cancel</button>
+                </div>
+            </form>
+            
+        </div>
+
+    </div>
+    
+    <script src = "quiz_fetch.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Artifacts </title>
+    <link rel = "icon" type = "image/png" href = "../assets/logo/euC.png">
+    <link rel = "stylesheet" href = "artifacts_classmate.css">
+</head>
+<body>
+
+    <dialog id = "terms-and-condition-dialog">
+
+        <div class = "terms-condition-container">
+
+            <h2> Data Privacy Act </h2>
+            
+            <div class = "content">
+
+            <h5> Privacy Warning </h5>
+            <p>
+                Unauthorized access, copying, capturing, or distribution of any files or data within this Digital Portfolio Platform is strictly prohibited. Violation of these rules will result in severe consequences, including disciplinary action, potential legal proceedings, and permanent loss of access to the Platform.
+            </p>
+
+            <h5> Examples of Unauthorized Actions </h5>
+
+            <p>
+                <strong> Stealing Files: </strong> Accessing or downloading another student’s quizzes, assignments, or personal files without permission.
+            </p>
+            <br>
+            <p>
+                <strong> Capturing Content: </strong> Taking screenshots, recording screen content, or photographing Platform materials for any purpose other than authorized educational activities.
+            </p>
+            <br>
+            <p>
+                <strong> Sharing Files: </strong> Distributing or forwarding another student's files or personal information (such as email addresses, phone numbers, or demographic data) without explicit consent from the school administration.
+            </p>
+            <br>
+            <p>
+                <strong> Bypassing Security: </strong> Attempting to hack, bypass security measures, or exploit vulnerabilities to access restricted areas or data on the Platform.
+            </p>
+            
+            <h5> Consequences of Violation </h5>
+
+            <p>
+                If any user is found to be in violation of these privacy protections, they may face one or more of the following actions:
+            </p>
+            <br>
+            <p>
+                <strong> Immediate Revocation of Access: </strong> The user’s account may be suspended or permanently disabled.
+            </p>
+            <br>
+            <p>
+                <strong> School Disciplinary Action: </strong> Violators may face disciplinary measures in accordance with school policies, which may include suspension or expulsion.
+            </p>
+            <br>
+            <p>
+                <strong> Legal Consequences: </strong> Violators may be prosecuted under relevant data privacy laws, including penalties for unauthorized access and misuse of digital information.
+            </p>
+            <br>
+            <p>
+                <strong> Legal Basis: </strong> Unauthorized access and distribution of personal data is a violation of applicable privacy and cybersecurity laws, such as:
+            </p>
+            <br>
+            <p>
+                <strong> Data Privacy Act or COPPA for minors: </strong> This law mandates strict protection and authorized use of personal information, especially for minors, with penalties for non-compliance.
+            </p>
+            <br>
+            <p>
+                <strong> Anti-Cybercrime Laws: </strong> Laws that govern illegal access, hacking, and data theft include penalties ranging from fines to imprisonment.
+            </p>
+
+            <h5> Important Reminders </h5>
+
+            <p>
+                This Platform is strictly intended for educational use. Only authorized users (students, guardians, and school personnel) have the right to view and interact with content on the Platform. By using this Platform, you agree to respect the privacy of other users and understand that any misuse of information or files is punishable by law.
+            </p>
+
+            <br>
+            <p>
+                For any questions about authorized use, please contact the school administration or Platform Developer (Ephraim De Lara) via gmail (delaraephraim171@gmail.com).
+            </p>
+
+            </div>
+
+            <div class = "accept-decline-button">
+                <button class = "accept" id = "accept-button"> Accept </button>
+                <button class = "decline" id = "decline-button"> Decline </button>
+            </div>
+
+        </div>
+
+    </dialog>
+
+    <nav> 
+
+        <a href = "#">
+            <img src = "../assets/logo/euC.png" alt = "MSEUF logo" class = "logo-image">
+            <h1> Manuel S. Enverga Candelaria Quezon Inc.</h1>
+        </a>
+
+        <a href = "javascript:void(0)" onclick = "history.back()" rel="noopener noreferrer">
+            <button class = "log-out-button"> Back to Profile </button>
+        </a>
+
+    </nav>
+
+    <!-- Permission Modal -->
+
+  
+
+    <div class = "container">
+        
+        <div class = "filter-buttons">
+            <h1 id = "owner-name">  </h1>
+            <button class = "active" data-name = "all"> Show All </button>
+            <button data-name = "english"> English </button>
+            <button data-name = "filipino"> Filipino </button>
+            <button data-name = "math"> Math </button>
+            <button data-name = "science"> Science </button>
+            <button data-name = "mapeh"> MAPEH </button>
+        </div>
+
+        <div class = "filter-cards" id = "uploadedImagesContainer">
+
+
+        </div>
+
+    </div>
+    
+    <script src = "terms_condition.js"></script>
+    <script src = "artifacts_classmate_fetch.js"></script>
+ 
+</body>
+</html>
