@@ -450,7 +450,7 @@ app.get(`/student_user/view/`, verifyToken, async (req, res) => {
 
             const student = rows[0];
 
-            student.Profile_Picture = student.Profile_Picture ? `https://achieve-hub.onrender.com/uploads${student.Profile_Picture}` : null;
+            student.Profile_Picture = student.Profile_Picture ? `https://achieve-hub.onrender.com/${student.Profile_Picture}` : null;
 
         });
 
