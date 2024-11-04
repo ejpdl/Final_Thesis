@@ -1,3 +1,6 @@
+
+
+
 // FUNCTION FOR DATE FORMAT
 function formatDateWithSlashes(dateString){
 
@@ -140,6 +143,11 @@ async function loadClassmateData(studentID){
 
         document.querySelector(`#classmate-name-${studentID}`).textContent = `${data.First_Name} ${data.Last_Name}`;
         document.querySelector(`#classmate-gradesection-${studentID}`).textContent = `${data.Grade_Level} - ${data.Section}`;
+
+        const ownerIdElement = document.querySelector(`#owner-id`);
+        if (ownerIdElement) {
+            ownerIdElement.textContent = data.Student_ID;  // This line ensures the owner ID reflects the current classmate's ID
+        }
         
       
     }catch(error){
@@ -149,6 +157,86 @@ async function loadClassmateData(studentID){
     }
 
 }
+async function fetchPeers(){
+
+    const token = localStorage.getItem("token");
+
+    try{
+
+        const response = await fetch(`http://localhost:5000/peers/list`, {
+
+            method: 'GET',
+            headers: {
+
+                'Authorization' :  token,
+                'Content-Type'  :   'application/json',
+
+            }
+
+        });
+
+        if(!response.ok){
+
+            throw new Error(`Failed to Fetch`);
+
+        }
+
+        const students = await response.json();
+        renderStudents(students);
+        loadClassmate();
+
+
+    }catch(error){
+
+        console.log(error);
+
+    }
+
+}
+
+async function renderStudents(students){
+
+    const container = document.querySelector('.peer-container');
+    container.innerHTML = ''; // Clear previous content
+
+    students.forEach(student => {
+
+        const studentCard = document.createElement('a');
+        studentCard.href = `../Classmate_Page/classmate.html?Student_ID=${student.Student_ID}`;
+        studentCard.classList.add('classmate-link');
+        studentCard.dataset.studentId = student.Student_ID;
+
+
+        studentCard.innerHTML = `
+            <div class="peer-cards" data-student-id="${student.Student_ID}">
+                <div class="image">
+                    <img id="profile-${student.Student_ID}" src="${student.Profile_Picture || ''}" alt="classmate-profile">
+                </div>
+                <span class="peer-name" id="classmate-name-${student.Student_ID}">${student.Name || 'Name'}</span>
+                <span class="peer-grade-section" id="classmate-gradesection-${student.Student_ID}">${student.Grade_Section || 'Grade and Section'}</span>
+            </div>
+        `;
+
+        container.appendChild(studentCard);
+
+    });
+
+    const classmateLinks = document.querySelectorAll('.classmate-link');
+
+    classmateLinks.forEach(link => {
+
+        link.addEventListener('click', function () {
+
+            const studentId = this.getAttribute('data-student-id');
+            localStorage.setItem('classmateId', studentId);
+
+        });
+
+    });
+
+}
+
+fetchPeers();
 
 async function loadClassmate(){
 
@@ -168,13 +256,14 @@ async function loadClassmate(){
 
         }
 
-        loadClassmateData(studentID);
+        
 
     });
 
 }
 
-loadClassmate();
+
+
 
 
 // EDIT DIALOG FETCH
@@ -402,4 +491,139 @@ function toggleDemographics(){
 document.querySelector(`#toggle-eye`).addEventListener('click', toggleDemographics);
 
 
+async function loadAccessRequests(){
+
+    const token = localStorage.getItem('token');
+
+    try{
+
+        const response = await fetch(`http://localhost:5000/access/requests`, {
+
+            method: 'GET',
+            headers: {
+
+                'Authorization': token,
+                'Content-Type': 'application/json',
+
+            },
+
+        });
+
+        if(response.ok){
+
+            const requests = await response.json();
+            const requestsContainer = document.getElementById('accessRequestsContainer');
+
+            requestsContainer.innerHTML = '';
+
+            requests.forEach(request => {
+
+                const requestItem = document.createElement('div');
+                requestItem.className = 'notification';
+                requestItem.classList.add('request-item');
+                requestItem.id = `request-${request.id}`;
+                requestItem.innerHTML = `
+                    <p><strong>${request.First_Name} ${request.Last_Name} </strong> has requested access to your files.</p>
+                    <button class = "accept" onclick="handleAccessRequest(${request.id}, 'accept')">Accept</button>
+                    <button class = "decline" onclick="handleAccessRequest(${request.id}, 'decline')">Decline</button>
+                `;
+
+                requestsContainer.appendChild(requestItem);
+
+                let fadeTimeout;
+
+                function startFadeOut(){
+
+                    fadeTimeout = setTimeout(() => {
+
+                        requestItem.style.opacity = 0;
+
+                        setTimeout(() => {
+
+                            requestItem.remove();
+
+                        }, 500); 
+
+                    }, 5000); 
+
+                }
+
+                requestItem.addEventListener('mouseover', () => {
+
+                    clearTimeout(fadeTimeout);
+
+                });
+            
+                requestItem.addEventListener('mouseout', () => {
+
+                    startFadeOut();
+
+                });
+
+                startFadeOut();
+
+            });
+
+        }else{
+
+            const result = await response.json();
+            console.log('Error fetching access requests:', result.error);
+
+        }
+
+    }catch(error){
+
+        console.error('Error loading access requests:', error);
+
+    }
+    
+}
+
+async function handleAccessRequest(requestID, action){
+
+    const token = localStorage.getItem('token');
+    
+    try{
+
+        const response = await fetch(`http://localhost:5000/access/request/${requestID}/${action}`, {
+            
+            method: 'POST',
+            headers: {
+
+                'Authorization': token,
+                'Content-Type': 'application/json',
+
+            },
+
+        });
+
+        if(response.ok){
+
+            alert(`Request ${action === 'accept' ? 'accepted' : 'declined'} successfully!`);
+            const requestItem = document.getElementById(`request-${requestID}`);
+
+            if(requestItem){
+
+                requestItem.remove();
+
+            }
+
+        }else{
+
+            const result = await response.json();
+            alert(`Error handling request: ${result.error}`);
+
+        }
+
+    }catch(error){
+
+        console.error('Error handling access request:', error);
+        alert('An error occurred while handling the access request.');
+
+    }
+
+}
+
+
+loadAccessRequests();
 

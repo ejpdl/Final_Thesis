@@ -1,27 +1,55 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
     const filterbuttons = document.querySelectorAll(`.filter-buttons button`);
-    const uploadedImagesContainer = document.querySelector(`#uploadedImagesContainer`);
-    
+    const requestAccessButton = document.querySelector(`#requestAccessButton`);
+    const accessStatusMessage = document.querySelector("#accessStatusMessage");
+
+    const classmateID = localStorage.getItem('classmateId'); 
+
+    requestAccessButton.addEventListener('click', async () => {
+
+        accessStatusMessage.textContent = "Access requested. Waiting for the approval of the owner...";
+        await requestAccess(classmateID);
+
+        const accessGranted = await checkAccessStatusWithRetry(classmateID, 5);
+
+        if(accessGranted === "accepted"){
+
+            accessStatusMessage.textContent = "Access granted! Enjoy...";
+            await loadClassmateFiles();
+
+        }else if(accessGranted === "declined"){
+
+            accessStatusMessage.textContent = "I'm Sorry but, Owner doesn't want to grant you access. Please try again later.";
+
+        }else{
+
+            accessStatusMessage.textContent = "I'm Sorry but, Owner doesn't want to grant you access. Please try again later.";
+
+        }
+
+    });
 
     const filtercards = e => {
 
-        document.querySelector(`.active`)?.classList.remove("active"); 
+        document.querySelector(`.active`)?.classList.remove("active");
         e.target.classList.add("active");
 
         const filterValue = e.target.dataset.name.toLowerCase();
-
         const filterablecards = uploadedImagesContainer.querySelectorAll(`.card`);
 
         filterablecards.forEach(card => {
 
             const cardSubject = card.dataset.name.toLowerCase();
 
-            // Show the card if it matches the filter or if "all" is selected
-            if (filterValue === "all" || cardSubject === filterValue) {
+            if(filterValue === "all" || cardSubject === filterValue){
+
                 card.classList.remove("hide");
-            } else {
+
+            }else{
+
                 card.classList.add("hide");
+
             }
 
         });
@@ -30,10 +58,90 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     filterbuttons.forEach(button => button.addEventListener("click", filtercards));
 
-    await loadClassmateFiles();
-
 });
 
+async function checkAccessStatus(classmateID){
+
+    const token = localStorage.getItem("token");
+
+    try{
+
+        const response = await fetch(`http://localhost:5000/check/access/${classmateID}`, {
+
+            method: 'GET',
+            headers: { 
+
+                'Authorization' : token 
+
+            }
+
+        });
+
+        if(!response.ok){
+
+            if(response.status === 404){
+
+                console.error('No access request found for this classmate.');
+                return false;
+
+            }else{
+
+                console.error('Failed to fetch access status:', response.statusText);
+                return false;
+
+            }
+
+        }
+
+        const result = await response.json();
+        return result.status;
+
+    }catch(error){
+
+        console.error('Error checking access status:', error);
+        return false;
+
+    }
+
+}
+
+async function checkAccessStatusWithRetry(classmateID, maxRetries){
+
+    let attempts = 0;
+    const retryDelay = 5000;
+
+    while(attempts < maxRetries){
+
+        const accessGranted = await checkAccessStatus(classmateID);
+
+        if(accessGranted === "accepted"){
+
+            return 'accepted';
+
+        }else if(accessGranted === "declined"){
+
+            return 'declined';
+
+        }else if(accessGranted === "pending"){
+
+            console.log(`Access still pending. Attempt ${attempts + 1} of ${maxRetries}. Retrying in ${retryDelay / 1000} seconds...`);
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+
+        }else{
+
+            console.log('Access request not found or failed to fetch status.');
+            return "not_found";
+
+        }
+
+
+    }
+
+    console.log('Access still not granted after maximum retries.');
+    return "pending";
+
+}
 
 async function loadClassmateFiles(){
 
@@ -42,7 +150,7 @@ async function loadClassmateFiles(){
 
     if(!studentID){
 
-        console.log(`No classmate ID found in the local storage`);
+        console.log(`No classmate ID found in local storage`);
         return;
 
     }
@@ -53,8 +161,8 @@ async function loadClassmateFiles(){
 
             method: 'GET',
             headers: {
-
-                'Authorization' :  token
+            
+                'Authorization' : token 
 
             }
 
@@ -63,7 +171,10 @@ async function loadClassmateFiles(){
         if(response.ok){
 
             const { quizzes, performanceTasks, assignments, seatworks, examPapers } = await response.json();
+
             const uploadedImagesContainer = document.querySelector(`#uploadedImagesContainer`);
+
+            uploadedImagesContainer.innerHTML = '';
 
             if(quizzes.length > 0){
 
@@ -140,7 +251,6 @@ async function loadClassmateFiles(){
 
             }
 
-
         }else{
 
             console.log(`Error fetching classmates files`);
@@ -158,8 +268,7 @@ async function loadClassmateFiles(){
 function addImageCard(fileUrl, fileData){
 
     const uploadedImagesContainer = document.querySelector(`#uploadedImagesContainer`);
-
-    const OwnerName = `${fileData.First_Name} ${fileData.Last_Name}`
+    const OwnerName = `${fileData.First_Name} ${fileData.Last_Name}`;
     document.querySelector(`#owner-name`).textContent = `${OwnerName}'s Property`;
 
     const card = document.createElement("div");
@@ -167,53 +276,46 @@ function addImageCard(fileUrl, fileData){
     const subjectName = (fileData.Subject && typeof fileData.Subject === 'string') 
         ? fileData.Subject.toLowerCase() 
         : "unknown";
-    card.setAttribute("data-name", subjectName); 
+    card.setAttribute("data-name", subjectName);
 
     let fileType;
-    
-    if(fileUrl.match(/\.(jpeg|jpg|png)$/)){
 
-        // FOR IMAGES
+    if (fileUrl.match(/\.(jpeg|jpg|png)$/)){
+
         fileType = document.createElement("img");
         fileType.src = fileUrl;
         fileType.alt = "Images";
 
     }else if(fileUrl.match(/\.(mp4|avi|mkv)$/)){
 
-        // FOR VIDEOS
         fileType = document.createElement("video");
         fileType.src = fileUrl;
-        fileType.controls = true; 
+        fileType.controls = true;
         fileType.width = 700;
         fileType.height = 250;
 
     }else if(fileUrl.match(/\.pdf$/)){
 
-        // FOR PDF
         const pdfLink = document.createElement("a");
         pdfLink.href = fileUrl;
         pdfLink.target = "_blank";
-
         const pdfIcon = document.createElement("img");
-        pdfIcon.src = "../assets/image_placeholders/pdf.png"; 
+        pdfIcon.src = "../assets/image_placeholders/pdf.png";
         pdfIcon.alt = "PDF icon";
-
-        pdfLink.appendChild(pdfIcon); 
-        fileType = pdfLink
+        pdfLink.appendChild(pdfIcon);
+        fileType = pdfLink;
 
     }else{
 
         const pdfLink = document.createElement("a");
         pdfLink.href = fileUrl;
         pdfLink.target = "_blank";
-
         const pdfIcon = document.createElement("img");
-        pdfIcon.src = "../assets/image_placeholders/pdf.png"; 
+        pdfIcon.src = "../assets/image_placeholders/pdf.png";
         pdfIcon.alt = "PDF icon";
+        pdfLink.appendChild(pdfIcon);
+        fileType = pdfLink;
 
-        pdfLink.appendChild(pdfIcon); 
-        fileType = pdfLink
-    
     }
 
     const cardBody = document.createElement("div");
@@ -222,10 +324,6 @@ function addImageCard(fileUrl, fileData){
     const title = document.createElement("h6");
     title.classList.add("card-title");
     title.textContent = fileData.Title;
-
-    const text = document.createElement("p");
-    text.classList.add("card-text");
-    text.textContent = `File: ${fileData.File || 'File not found'}`;
 
     const gradeText = document.createElement("p");
     gradeText.classList.add("card-grade");
@@ -236,12 +334,50 @@ function addImageCard(fileUrl, fileData){
     uploader.textContent = `Uploaded by: ${fileData.First_Name} ${fileData.Last_Name}`;
 
     cardBody.appendChild(title);
-    // cardBody.appendChild(text);
     cardBody.appendChild(gradeText);
     cardBody.appendChild(uploader);
     card.appendChild(fileType);
     card.appendChild(cardBody);
-    
-    uploadedImagesContainer.appendChild(card); 
+
+    uploadedImagesContainer.appendChild(card);
+
+}
+
+async function requestAccess(classmateID){
+
+    const token = localStorage.getItem('token');
+
+    try{
+
+        const response = await fetch(`http://localhost:5000/request/access`, {
+
+            method: 'POST',
+            headers: {
+
+                'Authorization' : token,
+                'Content-Type'  : 'application/json',
+
+            },
+            body: JSON.stringify({classmateID}),
+
+        });
+
+        if(response.ok){
+
+            alert('Access request sent successfully!');
+
+        }else{
+
+            const result = await response.json();
+            alert(`Error sending request: ${result.error}`);
+
+        }
+
+    }catch(error){
+
+        console.error('Error sending access request:', error);
+        alert('An error occurred while sending the access request.');
+
+    }
 
 }

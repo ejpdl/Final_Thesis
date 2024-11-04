@@ -313,6 +313,7 @@ button.active {
 .card-body {
 
     padding: 15px 20px 20px;
+    overflow: auto;
 
 }
 
@@ -334,6 +335,39 @@ button.active {
 .card.hide {
 
     display: none;
+
+}
+
+.request-and-text-container {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2em;
+    height: 60vh;
+
+}
+
+button.request-access {
+
+    background-color: maroon;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.7);
+
+}
+
+.access-status {
+
+    font-size: 1.3em;
+    color: #333;
+    display: flex;
+    gap: 0.5em;
 
 }
 

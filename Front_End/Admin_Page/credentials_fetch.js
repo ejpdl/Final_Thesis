@@ -61,7 +61,7 @@ async function fetchUsers(){
             
         });
 
-        document.querySelector(`#Count`).textContent = `${teacherCount} teacher${teacherCount !== 1 ? 's' : ''}, ${studentCount} student${studentCount !== 1 ? 's' : ''}, ${adminCount} admin${adminCount !== 1 ? 's' : ''},`;
+        document.querySelector(`#Count`).textContent = `${teacherCount} teacher${teacherCount !== 1 ? 's' : ''}, ${studentCount} student${studentCount !== 1 ? 's' : ''}, ${adminCount} admin${adminCount !== 1 ? 's' : ''}`;
 
     }catch(error){
 
