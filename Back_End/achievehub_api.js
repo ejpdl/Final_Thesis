@@ -7,7 +7,6 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-const { verify } = require('crypto');
 
 const secret = 'your_jwt_secret';
 
@@ -52,6 +51,7 @@ connection.connect((err) => {
     }
 
 });
+
 
 // ANCHOR - UPLOAD USER IMAGE
 const fileStorage = multer.diskStorage({
@@ -127,8 +127,8 @@ const verifyToken = async (req, res, next) => {
 
 };
 
-
-// ANCHOR - LOG IN API
+// ANCHOR <================================ CREDENTIALS ================================>
+// LOG IN API
 app.post(`/credentials/login`, async (req, res) => {
 
     try{
@@ -255,6 +255,7 @@ app.post(`/credentials/login`, async (req, res) => {
 });
 
 
+// CREDENTIALS LIST (VIEW)
 app.get(`/credentials/list`, verifyToken, async (req, res) => {
 
     try{
@@ -281,6 +282,8 @@ app.get(`/credentials/list`, verifyToken, async (req, res) => {
 
 });
 
+
+// CREDENTIALS LIST (VIEW WITH SPECIFIC PARAMS (ID))
 app.get(`/credentials/list/view/:LogIn_ID`, verifyToken, async (req, res) => {
 
     const { LogIn_ID } = req.params;
@@ -315,7 +318,86 @@ app.get(`/credentials/list/view/:LogIn_ID`, verifyToken, async (req, res) => {
 
 });
 
-// ANCHOR - DELETE PERFORMANCE TASK
+
+// CREDENTIALS ADD
+app.post(`/credentials/add`, verifyToken, async (req, res) => {
+
+    const { LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, role } = req.body;
+
+    if(!['admin', 'teacher', 'student'].includes(role)){
+
+        return res.status(400).json({ error: `Invalid role.` });
+
+    }
+
+    try{
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(Hash_Password, salt);
+
+        const query = `INSERT INTO login_credentials (LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, Role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        connection.query(query, [LogIn_ID, Student_ID, hashedPassword, First_Name, Last_Name, Grade, Section, role], (err, results) => {
+
+            if(err){
+
+                console.log(err);
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            res.status(200).json({ msg: `User registered as ${role}` });
+
+        });
+
+    }catch(error){
+
+        console.log(error);
+        res.status(500).json({ error: "Server error during registration." });
+
+    }
+
+});
+
+
+// CREDENTIALS UPDATE
+app.put(`/credentials/update`, verifyToken,async (req, res) => {
+    
+    const { Student_ID, First_Name, Last_Name, Grade, Section, Role, LogIn_ID } = req.body;
+
+    try{
+
+        const query = `UPDATE login_credentials SET Student_ID = ?, First_Name = ?, Last_Name = ?, Grade = ?, Section = ?, Role = ? WHERE LogIn_ID = ?`;
+
+        connection.query(query, [Student_ID, First_Name, Last_Name, Grade, Section, Role, LogIn_ID], (err, results) => {
+            
+            if(err){
+
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            if (results.affectedRows === 0) {
+                
+                return res.status(404).json({ error: `No record found to update.` });
+            
+            }
+
+            console.log(`Successfully updated User with LogIn_ID: ${LogIn_ID}`);
+            res.status(200).json({ msg: `Successfully Updated!` });
+
+        });
+
+    }catch(error){
+        
+        console.log(error)
+    
+    }
+
+});
+
+
+// CREDENTIALS DELETE (DELETE WITH SPECIFIC ID)
 app.delete(`/credentials/delete/:Student_ID`, verifyToken, async (req, res) => {
 
     const { Student_ID } = req.params;
@@ -336,7 +418,10 @@ app.delete(`/credentials/delete/:Student_ID`, verifyToken, async (req, res) => {
 
 });
 
-// ANCHOR - STUDENT PAGE API
+
+// ANCHOR - STUDENT PAGE API =======================================================================>
+
+// STUDENT VIEW
 app.get(`/student_user/view/`, verifyToken, async (req, res) => {
 
     try{
@@ -379,57 +464,7 @@ app.get(`/student_user/view/`, verifyToken, async (req, res) => {
 });
 
 
-// ANCHOR - CLASSMATE PAGE API
-app.get(`/classmate/view/:Student_ID`, verifyToken, async (req, res) => {
-
-    try{
-
-        const { Student_ID } = req.params;
-
-        const query = `SELECT * FROM student_user WHERE Student_ID = ?`;
-
-        connection.query(query, [Student_ID], async (err, rows) => {
-
-            if(err){
-
-                return res.status(500).json({ error: err.message });
-
-            }
-
-            if(rows.length > 0){
-
-                const classmate = rows[0];
-
-                if(classmate.hide_demographics){
-
-                    delete classmate.Age;
-                    delete classmate.Birthday;
-                    delete classmate.Phone_Number;
-                    delete classmate.Email;
-
-                }
-
-                res.status(200).json(classmate);
-
-            }else{
-
-                res.status(404).json({ msg: `Classmate with ID ${Student_ID} is not found` });
-
-            }
-
-        });
-
-    }catch(error){
-
-        console.log(error);
-        res.status(500).json({ msg: `Server Error` });
-
-    }
-
-});
-
-
-// ANCHOR - TO VIEW LIST OF STUDENT
+// TO VIEW LIST OF STUDENT
 app.get(`/students/list`, verifyToken, async (req, res) => {
 
     try{
@@ -457,7 +492,38 @@ app.get(`/students/list`, verifyToken, async (req, res) => {
 
 });
 
-// ANCHOR - TO SHOW AND TO HIDE DEMOGRAPHICS
+
+// ANCHOR - TO ADD THE NEW INFORMATION OF THE NEW USER
+app.post('/student_user/add', verifyToken, async (req, res) => {
+
+    try{
+
+        const { student_id, fname, mname, lname, bday, age, gender, phone, email, grade_level, section, about } = req.body;
+
+        const query = `INSERT INTO student_user (Student_ID, First_Name, Middle_Name, Last_Name, Birthday, Age, Gender, Phone_Number, Email, Grade_Level, Section, About_Me) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        connection.query(query, [student_id, fname, mname, lname, bday, age, gender, phone, email, grade_level, section, about, ], (err, result) => {
+
+            if(err){
+
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            res.status(200).json({ msg: `Student with Name of ${fname} is successfully added` });
+
+        });
+
+    }catch(error){
+
+        console.log(error);
+
+    }
+
+});
+
+
+// SHOW AND HIDE DEMOGRAPHICS
 app.post(`/student_user/privacy`, verifyToken, async (req, res) => {
 
     try{
@@ -489,7 +555,7 @@ app.post(`/student_user/privacy`, verifyToken, async (req, res) => {
 });
 
 
-// ANCHOR - UPDATE A STUDENT USER API
+// UPDATE STUDENT USER INFORMATION
 app.put(`/student_user/update`, verifyToken, upload.single('image'), async (req, res) => {
 
     try{
@@ -540,7 +606,57 @@ app.put(`/student_user/update`, verifyToken, upload.single('image'), async (req,
 });
 
 
-//ANCHOR - UPLOAD THE IMAGE IN THE ARTIFACTS (GENERAL)
+// ANCHOR - CLASSMATE PAGE API =================================================================>
+app.get(`/classmate/view/:Student_ID`, verifyToken, async (req, res) => {
+
+    try{
+
+        const { Student_ID } = req.params;
+
+        const query = `SELECT * FROM student_user WHERE Student_ID = ?`;
+
+        connection.query(query, [Student_ID], async (err, rows) => {
+
+            if(err){
+
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            if(rows.length > 0){
+
+                const classmate = rows[0];
+
+                if(classmate.hide_demographics){
+
+                    delete classmate.Age;
+                    delete classmate.Birthday;
+                    delete classmate.Phone_Number;
+                    delete classmate.Email;
+
+                }
+
+                res.status(200).json(classmate);
+
+            }else{
+
+                res.status(404).json({ msg: `Classmate with ID ${Student_ID} is not found` });
+
+            }
+
+        });
+
+    }catch(error){
+
+        console.log(error);
+        res.status(500).json({ msg: `Server Error` });
+
+    }
+
+});
+
+
+//ANCHOR - UPLOAD THE IMAGE IN THE ARTIFACTS (GENERAL) ===========================================>
 app.post(`/upload/artifacts`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
 
     try {
@@ -681,7 +797,7 @@ app.post(`/upload/quiz`, verifyToken, uploadArtifacts.single('file'), async (req
 });
 
 
-// ANCHOR - UPLAOAD PERFORMANCE TASK
+// ANCHOR - PERFORMANCE TASK UPLOAD
 app.post(`/upload/performance_task`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
 
     try{
@@ -736,7 +852,7 @@ app.post(`/upload/performance_task`, verifyToken, uploadArtifacts.single('file')
 });
 
 
-// ANCHOR - UPLAOAD ASSIGNMENTS
+// ANCHOR - ASSIGNMENTS UPLOAD
 app.post(`/upload/assignment`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
 
     try{
@@ -791,7 +907,7 @@ app.post(`/upload/assignment`, verifyToken, uploadArtifacts.single('file'), asyn
 });
 
 
-// ANCHOR - UPLAOAD SEATWORKS
+// ANCHOR - SEATWORKS UPLOAD
 app.post(`/upload/seatwork`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
 
     try{
@@ -846,7 +962,7 @@ app.post(`/upload/seatwork`, verifyToken, uploadArtifacts.single('file'), async 
 });
 
 
-// ANCHOR - UPLAOAD PERFORMANCE TASK
+// ANCHOR - EXAM PAPERS UPLOAD
 app.post(`/upload/exampapers`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
 
     try{
@@ -994,7 +1110,7 @@ app.get(`/view/assignment`, verifyToken, async (req, res) => {
 });
 
 
-// ANCHOR - VIEW ASSIGNMENT
+// ANCHOR - VIEW SEATWORK
 app.get(`/view/seatwork`, verifyToken, async (req, res) => {
 
     try{
@@ -1025,7 +1141,7 @@ app.get(`/view/seatwork`, verifyToken, async (req, res) => {
 });
 
 
-// ANCHOR - VIEW ASSIGNMENT
+// ANCHOR - VIEW EXAMPAPERS
 app.get(`/view/exampapers`, verifyToken, async (req, res) => {
 
     try{
@@ -1291,111 +1407,8 @@ app.delete(`/delete/exampapers`, verifyToken, async (req, res) => {
 });
 
 
-// ANCHOR - TO ADD NEW USER
-app.post(`/credentials/add`, verifyToken, async (req, res) => {
-
-    const { LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, role } = req.body;
-
-    if(!['admin', 'teacher', 'student'].includes(role)){
-
-        return res.status(400).json({ error: `Invalid role.` });
-
-    }
-
-    try{
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(Hash_Password, salt);
-
-        const query = `INSERT INTO login_credentials (LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, Role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-
-        connection.query(query, [LogIn_ID, Student_ID, hashedPassword, First_Name, Last_Name, Grade, Section, role], (err, results) => {
-
-            if(err){
-
-                console.log(err);
-                return res.status(500).json({ error: err.message });
-
-            }
-
-            res.status(200).json({ msg: `User registered as ${role}` });
-
-        });
-
-    }catch(error){
-
-        console.log(error);
-        res.status(500).json({ error: "Server error during registration." });
-
-    }
-
-});
-
-app.put(`/credentials/update`, verifyToken,async (req, res) => {
-    
-    const { Student_ID, First_Name, Last_Name, Grade, Section, Role, LogIn_ID } = req.body;
-
-    try{
-
-        const query = `UPDATE login_credentials SET Student_ID = ?, First_Name = ?, Last_Name = ?, Grade = ?, Section = ?, Role = ? WHERE LogIn_ID = ?`;
-
-        connection.query(query, [Student_ID, First_Name, Last_Name, Grade, Section, Role, LogIn_ID], (err, results) => {
-            
-            if(err){
-
-                return res.status(500).json({ error: err.message });
-
-            }
-
-            if (results.affectedRows === 0) {
-                
-                return res.status(404).json({ error: `No record found to update.` });
-            
-            }
-
-            console.log(`Successfully updated User with LogIn_ID: ${LogIn_ID}`);
-            res.status(200).json({ msg: `Successfully Updated!` });
-
-        });
-
-    }catch(error){
-        
-        console.log(error)
-    
-    }
-
-});
-
-
-// ANCHOR - TO ADD THE NEW INFORMATION OF THE NEW USER
-app.post('/student_user/add', verifyToken, async (req, res) => {
-
-    try{
-
-        const { student_id, fname, mname, lname, bday, age, gender, phone, email, grade_level, section, about } = req.body;
-
-        const query = `INSERT INTO student_user (Student_ID, First_Name, Middle_Name, Last_Name, Birthday, Age, Gender, Phone_Number, Email, Grade_Level, Section, About_Me) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-        connection.query(query, [student_id, fname, mname, lname, bday, age, gender, phone, email, grade_level, section, about, ], (err, result) => {
-
-            if(err){
-
-                return res.status(500).json({ error: err.message });
-
-            }
-
-            res.status(200).json({ msg: `Student with Name of ${fname} is successfully added` });
-
-        });
-
-    }catch(error){
-
-        console.log(error);
-
-    }
-
-});
-
+// ANCHOR - GRADE AND SECTION =====================================================================>
+// GRADE AND SECTION LIST
 app.get(`/grade_and_section/list`, verifyToken, async (req, res) => {
     
     try{
@@ -1423,6 +1436,7 @@ app.get(`/grade_and_section/list`, verifyToken, async (req, res) => {
 });
 
 
+// GRADE AND SECTION ADD
 app.post(`/grade_and_section/add`, verifyToken, async (req, res) => {
 
     try{
@@ -1451,6 +1465,8 @@ app.post(`/grade_and_section/add`, verifyToken, async (req, res) => {
 
 });
 
+
+// GRADE AND SECTION DELETE
 app.delete(`/grade_and_section/delete/:id`, verifyToken, async (req, res) => {
 
     const { id } = req.params;
@@ -1472,6 +1488,253 @@ app.delete(`/grade_and_section/delete/:id`, verifyToken, async (req, res) => {
 });
 
 
+// ANCHOR - REQUEST ACCESS =====================================================================>
+app.post('/request/access', verifyToken, async (req, res) => {
+
+    const { classmateID } = req.body;
+    const requesterID = req.user.Student_ID;
+
+    const checkQuery = `SELECT * FROM file_requests WHERE requester_id = ? AND owner_id = ?`;
+    const insertQuery = `INSERT INTO file_requests (requester_id, owner_id) VALUES (?, ?)`;
+    const updateQuery = `UPDATE file_requests SET status = 'pending' WHERE requester_id = ? AND owner_id = ?`;
+
+    try{
+
+        connection.query(checkQuery, [requesterID, classmateID], (err, results) => {
+
+            if(err){
+
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            if(results.length > 0){
+
+                connection.query(updateQuery, [requesterID, classmateID], (updateErr, results) => {
+                   
+                    if(updateErr){
+
+                        return res.status(500).json({ error: updateErr.message });
+
+                    }
+
+                    res.status(200).json({ msg: 'Access request updated successfully' });
+
+                });
+
+            }else{
+
+                connection.query(insertQuery, [requesterID, classmateID], (insertErr, results) => {
+                    
+                    if(insertErr){
+
+                        return res.status(500).json({ error: insertErr.message });
+
+                    }
+
+                    res.status(200).json({ msg: 'Access request sent successfully' });
+
+                });
+
+            }
+            
+        });
+
+    }catch(error){
+
+        res.status(500).json({ error: error.message });
+
+    }
+
+});
+
+
+// ANCHOR - ACCESS REQUEST =======================================================================>
+app.get('/access/requests', verifyToken, async (req, res) => {
+
+    const classmateID  = req.user.Student_ID;
+
+    const query = `
+        SELECT fr.id, fr.requester_id, s.First_Name, s.Last_Name
+        FROM file_requests fr 
+        JOIN student_user s ON fr.requester_id = s.Student_ID
+        WHERE fr.owner_id = ?
+    `;
+
+    try{
+        
+        connection.query(query, [classmateID], (err, results) => {
+
+            if(err){
+
+                console.error("Database error:", err);
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            res.status(200).json(results);
+
+        });
+
+    }catch(error){
+
+        console.error('Error fetching access requests:', error);
+        res.status(500).json({ error: error.message });
+
+    }
+    
+});
+
+
+// ANCHOR - ACCESS REQUEST USING SPECIFIC PARAMS (ID) AND ACTION =================================>
+app.post('/access/request/:requestID/:action', verifyToken, async (req, res) => {
+
+    const { requestID, action } = req.params;
+
+    try{
+
+        if(action === 'accept'){
+            
+            const acceptQuery = `UPDATE file_requests SET status = 'accepted' WHERE id = ?`;
+            await connection.query(acceptQuery, [requestID]);
+
+        }else if(action === 'decline'){
+            
+            const declineQuery = `UPDATE file_requests SET status = 'declined' WHERE id = ?`;
+            await connection.query(declineQuery, [requestID]);
+
+        }else{
+
+            return res.status(400).json({ error: 'Invalid action' });
+
+        }
+
+        res.status(200).json({ msg: `Request ${action}ed successfully` });
+
+    }catch(error){
+
+        console.error('Error updating access request status:', error);
+        res.status(500).json({ error: error.message });
+
+    }
+
+});
+
+
+// ANCHOR - CHECK ACCESS STATUS ==================================================================>
+app.get('/check/access/:classmateID', verifyToken, async (req, res) => {
+
+    const requesterID = req.user.Student_ID;
+    const { classmateID } = req.params;
+
+    const query = `SELECT status FROM file_requests WHERE requester_id = ? AND owner_id = ?`;
+
+    try{
+
+        connection.query(query, [requesterID, classmateID], (err, results) => {
+
+            if(err){
+
+                console.error("Database error:", err);
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            if(results.length === 0){
+               
+                return res.status(404).json({ error: 'No access request found for this classmate.' });
+
+            }
+
+            const status = results[0].status;
+
+            if(status === 'accepted'){
+
+                res.json({ status: 'accepted', accessGranted: true });
+
+            }else if(status === 'declined'){
+
+                res.json({ status: 'declined', accessGranted: false });
+
+            }else if(status === 'pending'){
+
+                res.json({ status: 'pending', accessGranted: false });
+
+            }else{
+
+                res.status(400).json({ error: 'Unknown status' });
+
+            }
+
+        });
+
+    }catch(error){
+
+        console.error('Error checking access status:', error);
+        res.status(500).json({ error: error.message });
+        
+    }
+    
+});
+
+
+// ANCHOR - PEERS (CLASSMATES) LIST ==============================================================>
+app.get(`/peers/list`, async (req, res) => {
+
+    try{
+
+        const query = `SELECT 
+                student_user.Student_ID, 
+                student_user.First_Name, 
+                student_user.Last_Name, 
+                student_user.Grade_Level, 
+                student_user.Section, 
+                student_user.Profile_Picture,
+                login_credentials.Role
+            FROM 
+                student_user
+            JOIN 
+                login_credentials ON student_user.Student_ID = login_credentials.Student_ID
+            WHERE 
+                login_credentials.Role = 'student'
+        `;
+
+        connection.query(query, (err, results) => {
+
+            if(err){
+
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            const students = results.map(student => {
+
+                return {
+
+                    Student_ID: student.Student_ID,
+                    Name: `${student.First_Name} ${student.Last_Name}`,
+                    Grade_Section: `${student.Grade_Level} ${student.Section}`,
+                    Profile_Picture: student.Profile_Picture ? `http://localhost:5000/${student.Profile_Picture}` : null
+
+                };
+
+            });
+
+            res.status(200).json(students);
+
+        });
+
+    }catch(error){
+
+        console.log(error);
+        res.status(500).json({ error: err.message });
+
+    }
+
+});
+
+
+// ANCHOR - SERVER API ========================================================================>
 const PORT = process.env.PORT || 5000;
 
 app.listen(5000, () => {
