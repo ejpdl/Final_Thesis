@@ -1714,7 +1714,7 @@ app.get(`/peers/list`, async (req, res) => {
                     Student_ID: student.Student_ID,
                     Name: `${student.First_Name} ${student.Last_Name}`,
                     Grade_Section: `${student.Grade_Level} ${student.Section}`,
-                    Profile_Picture: student.Profile_Picture ? `https://achieve-hub.onrender.com/${student.Profile_Picture}` : null
+                    Profile_Picture: student.Profile_Picture ? `https://achieve-hub.onrender.com/uploads/${student.Profile_Picture}` : null
 
                 };
 
