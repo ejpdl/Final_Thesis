@@ -7,6 +7,8 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const cloudinary = require('cloudinary').v2;
+
 
 const secret = 'your_jwt_secret';
 
@@ -30,10 +32,10 @@ app.use(logger);
 
 const connection = mysql.createConnection({
 
-    host: "bphyhxsrvjwso4nouapp-mysql.services.clever-cloud.com",
-    user: "uiwk2nin5mxv5v5r",
-    password: "SVTbzHiDtTPRfsfX4akj",
-    database: "bphyhxsrvjwso4nouapp"
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "digital_portfolio"
 
 });
 
@@ -46,51 +48,79 @@ connection.connect((err) => {
 
     }else{
 
-        console.log(`Successfully Connected to MYSQL -Digital Portfolio-`);
+        console.log(`Successfully Connected to ${connection.config.database}`);
 
     }
 
 });
 
+
+cloudinary.config({ 
+    cloud_name: 'dshfavfin', // Replace with your cloud name
+    api_key: '118876977612457',       // Replace with your api key
+    api_secret: 'j97tZD2G24dCr5KPcI6pM8Hca58'  // Replace with your api secret
+});
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// Helper function for Cloudinary upload
+async function uploadToCloudinary(file) {
+    try {
+        // Convert buffer to base64
+        const b64 = Buffer.from(file.buffer).toString('base64');
+        const dataURI = "data:" + file.mimetype + ";base64," + b64;
+        
+        const result = await cloudinary.uploader.upload(dataURI, {
+            resource_type: 'auto',
+            folder: 'artifacts' // This will create a folder in your Cloudinary account
+        });
+        
+        return result.secure_url;
+    } catch (error) {
+        console.error('Cloudinary upload error:', error);
+        throw error;
+    }
+}
 
 // ANCHOR - UPLOAD USER IMAGE
-const fileStorage = multer.diskStorage({
+// const fileStorage = multer.diskStorage({
 
-    destination: (req, file, cb) => {
+//     destination: (req, file, cb) => {
 
-        cb(null, './uploads');
+//         cb(null, './uploads');
 
-    },
+//     },
 
-    filename: (req, file, cb) => {
+//     filename: (req, file, cb) => {
 
-        cb(null, Date.now() + '--' + file.originalname);
+//         cb(null, Date.now() + '--' + file.originalname);
 
-    }
+//     }
 
-});
+// });
 
-const upload = multer({ storage: fileStorage });
+// const upload = multer({ storage: fileStorage });
 
 
 // ANCHOR - UPLOAD ARTIFACTS
-const artifactsStorage = multer.diskStorage({
+// const artifactsStorage = multer.diskStorage({
 
-    destination: (req, file, cb) => {
+//     destination: (req, file, cb) => {
 
-        cb(null, './artifacts');
+//         cb(null, './artifacts');
 
-    },
+//     },
 
-    filename: (req, file, cb) => {
+//     filename: (req, file, cb) => {
 
-        cb(null,  Date.now() + '--' + file.originalname);
+//         cb(null,  Date.now() + '--' + file.originalname);
 
-    }
+//     }
 
-});
+// });
 
-const uploadArtifacts = multer({ storage: artifactsStorage });
+// const uploadArtifacts = multer({ storage: artifactsStorage });
 
 
 // ANCHOR - JSON WEB TOKEN (FOR AUTHENTICATION AND AUTHORIZATION)
@@ -318,45 +348,50 @@ app.get(`/credentials/list/view/:LogIn_ID`, verifyToken, async (req, res) => {
 
 });
 
-
-// CREDENTIALS ADD
-app.post(`/credentials/add`, verifyToken, async (req, res) => {
-
+app.post('/credentials/add', verifyToken, async (req, res) => {
     const { LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, role } = req.body;
-
-    if(!['admin', 'teacher', 'student'].includes(role)){
-
-        return res.status(400).json({ error: `Invalid role.` });
-
+    
+    if (!['admin', 'teacher', 'student'].includes(role)) {
+        return res.status(400).json({ error: 'Invalid role.' });
     }
-
-    try{
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(Hash_Password, salt);
-
-        const query = `INSERT INTO login_credentials (LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, Role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-
-        connection.query(query, [LogIn_ID, Student_ID, hashedPassword, First_Name, Last_Name, Grade, Section, role], (err, results) => {
-
-            if(err){
-
-                console.log(err);
-                return res.status(500).json({ error: err.message });
-
+    
+    try {
+        // First, check if Student_ID already exists
+        const checkQuery = 'SELECT * FROM login_credentials WHERE Student_ID = ?';
+        connection.query(checkQuery, [Student_ID], async (checkErr, checkResults) => {
+            if (checkErr) {
+                console.log(checkErr);
+                return res.status(500).json({ error: checkErr.message });
             }
-
-            res.status(200).json({ msg: `User registered as ${role}` });
-
+            
+            // If Student_ID already exists, return an error
+            if (checkResults.length > 0) {
+                return res.status(409).json({ error: 'Student ID already registered' });
+            }
+            
+            // If Student_ID is unique, proceed with registration
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(Hash_Password, salt);
+            
+            const insertQuery = `INSERT INTO login_credentials 
+            (LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, Role) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            
+            connection.query(insertQuery, 
+                [LogIn_ID, Student_ID, hashedPassword, First_Name, Last_Name, Grade, Section, role], 
+                (err, results) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).json({ error: err.message });
+                    }
+                    res.status(200).json({ msg: `User registered as ${role}` });
+                }
+            );
         });
-
-    }catch(error){
-
+    } catch (error) {
         console.log(error);
         res.status(500).json({ error: "Server error during registration." });
-
     }
-
 });
 
 
@@ -450,7 +485,7 @@ app.get(`/student_user/view/`, verifyToken, async (req, res) => {
 
             const student = rows[0];
 
-            student.Profile_Picture = student.Profile_Picture ? `http://localhost:5000/${student.Profile_Picture}` : null;
+            student.Profile_Picture = student.Profile_Picture ? `http://localhost:5000/uploads${student.Profile_Picture}` : null;
 
         });
 
@@ -657,364 +692,312 @@ app.get(`/classmate/view/:Student_ID`, verifyToken, async (req, res) => {
 
 
 //ANCHOR - UPLOAD THE IMAGE IN THE ARTIFACTS (GENERAL) ===========================================>
-app.post(`/upload/artifacts`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
-
-    try {
-
-        const { title, subject, material_type, grade} = req.body;
-
-        let filePath = null;
-
-        if(req.file){
-
-            filePath = `artifacts/${req.file.filename}`;
-
-        }
-
-        let query;
-        let params;
-
-        if(material_type === 'Quiz'){
-
-            query = `INSERT INTO Quiz (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-            params = [title, subject, filePath, grade, req.user.Student_ID];
-
-        }else if(material_type === 'Performance_Task'){
-
-            query = `INSERT INTO Performance_Task (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-            params = [title, subject, filePath, grade, req.user.Student_ID];
-
-        }else if(material_type === 'Assignment'){
-
-            query = `INSERT INTO Assignment (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-            params = [title, subject, filePath, grade, req.user.Student_ID];
-
-        }else if(material_type === 'SeatWork'){
-
-            query = `INSERT INTO SeatWork (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-            params = [title, subject, filePath, grade, req.user.Student_ID];
-
-        }else if(material_type === 'ExamPapers'){
-
-            query = `INSERT INTO ExamPapers (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-            params = [title, subject, filePath, grade, req.user.Student_ID];
-
-        }else{
-
-            return res.status(400).json({ error: `Invalid Material Type` });
-
-        }
-
-        connection.query(query, params, (err, results) => {
-
-            if(err){
-
-                return res.status(500).json({ error: err.message });
-
+    app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, res) => {
+        try {
+            const { title, subject, material_type, grade } = req.body;
+            let fileUrl = null;
+    
+            if (req.file) {
+                fileUrl = await uploadToCloudinary(req.file);
             }
-
-            if(results.affectedRows === 0){
-
-                return res.status(404).json({ error: `No record inserted` });
-
+    
+            let query;
+            let params;
+    
+            if (material_type === 'Quiz') {
+                query = `INSERT INTO Quiz (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                params = [title, subject, fileUrl, grade, req.user.Student_ID];
+            } else if (material_type === 'Performance_Task') {
+                query = `INSERT INTO Performance_Task (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                params = [title, subject, fileUrl, grade, req.user.Student_ID];
+            } else if (material_type === 'Assignment') {
+                query = `INSERT INTO Assignment (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                params = [title, subject, fileUrl, grade, req.user.Student_ID];
+            } else if (material_type === 'SeatWork') {
+                query = `INSERT INTO SeatWork (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                params = [title, subject, fileUrl, grade, req.user.Student_ID];
+            } else if (material_type === 'ExamPapers') {
+                query = `INSERT INTO ExamPapers (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                params = [title, subject, fileUrl, grade, req.user.Student_ID];
+            } else {
+                return res.status(400).json({ error: `Invalid Material Type` });
             }
-
-            res.status(200).json({
-
-                msg: `Successfully Uploaded`,
-                title: title,
-                subject: subject,
-                file_path: filePath,
-                grade: grade,
-                material_type: material_type
-
+    
+            connection.query(query, params, (err, results) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                if (results.affectedRows === 0) {
+                    return res.status(404).json({ error: `No record inserted` });
+                }
+                res.status(200).json({
+                    msg: `Successfully Uploaded`,
+                    title: title,
+                    subject: subject,
+                    file_url: fileUrl,
+                    grade: grade,
+                    material_type: material_type
+                });
             });
-
-        });
-
-    }catch(e){
-
-        console.log(e);
-        res.status(500).json({ error: 'Server error' });
-
-    }
-
-});
+        } catch (e) {
+            console.log(e);
+            res.status(500).json({ error: 'Server error' });
+        }
+    });
 
 
 // ANCHOR - QUIZ UPLOAD
-app.post(`/upload/quiz`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
-
-    try{
-
+app.post(`/upload/quiz`, verifyToken, upload.single('file'), async (req, res) => {
+    try {
         const { title, subject, grade } = req.body;
-
         const { Student_ID } = req.user;
+        let fileUrl = null;
 
-        let filePath = null;
-
-        if(req.file){
-
-            filePath = `artifacts/${req.file.filename}`;
-
+        if (req.file) {
+            fileUrl = await uploadToCloudinary(req.file);
         }
 
         const query = `INSERT INTO Quiz (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-
-        connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
-
-            if(err){
-
+        
+        connection.query(query, [title, subject, grade, fileUrl, Student_ID], (err, results) => {
+            if (err) {
                 return res.status(500).json({ error: err.message });
-
             }
-
-            if(results.affectedRows === 0){
-
+            if (results.affectedRows === 0) {
                 return res.status(404).json({ error: `No record inserted` });
-
             }
-
             res.status(200).json({
-
                 msg: `Successfully Uploaded`,
                 title: title,
                 subject: subject,
                 grade: grade,
-                file_path: filePath
-
+                file_url: fileUrl
             });
-
         });
-
-    }catch(e){
-
+    } catch (e) {
         console.log(e);
         res.status(500).json({ error: 'Server error' });
-
     }
-
 });
-
 
 // ANCHOR - PERFORMANCE TASK UPLOAD
-app.post(`/upload/performance_task`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
+// app.post(`/upload/performance_task`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
 
-    try{
+//     try{
 
-        const { title, subject, grade } = req.body;
+//         const { title, subject, grade } = req.body;
 
-        const { Student_ID } = req.user;
+//         const { Student_ID } = req.user;
 
-        let filePath = null;
+//         let filePath = null;
 
-        if(req.file){
+//         if(req.file){
 
-            filePath = `artifacts/${req.file.filename}`;
+//             filePath = `artifacts/${req.file.filename}`;
 
-        }
+//         }
 
-        const query = `INSERT INTO Performance_Task (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+//         const query = `INSERT INTO Performance_Task (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
 
-        connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
+//         connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
 
-            if(err){
+//             if(err){
 
-                return res.status(500).json({ error: err.message });
+//                 return res.status(500).json({ error: err.message });
 
-            }
+//             }
 
-            if(results.affectedRows === 0){
+//             if(results.affectedRows === 0){
 
-                return res.status(404).json({ error: `No record inserted` });
+//                 return res.status(404).json({ error: `No record inserted` });
 
-            }
+//             }
 
-            res.status(200).json({
+//             res.status(200).json({
 
-                msg: `Successfully Uploaded`,
-                title: title,
-                subject: subject,
-                grade: grade,
-                file_path: filePath
+//                 msg: `Successfully Uploaded`,
+//                 title: title,
+//                 subject: subject,
+//                 grade: grade,
+//                 file_path: filePath
 
-            });
+//             });
 
-        });
+//         });
 
-    }catch(e){
+//     }catch(e){
 
-        console.log(e);
-        res.status(500).json({ error: 'Server error' });
+//         console.log(e);
+//         res.status(500).json({ error: 'Server error' });
 
-    }
+//     }
 
-});
+// });
 
 
 // ANCHOR - ASSIGNMENTS UPLOAD
-app.post(`/upload/assignment`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
+// app.post(`/upload/assignment`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
 
-    try{
+//     try{
 
-        const { title, subject, grade } = req.body;
+//         const { title, subject, grade } = req.body;
 
-        const { Student_ID } = req.user;
+//         const { Student_ID } = req.user;
 
-        let filePath = null;
+//         let filePath = null;
 
-        if(req.file){
+//         if(req.file){
 
-            filePath = `artifacts/${req.file.filename}`;
+//             filePath = `artifacts/${req.file.filename}`;
 
-        }
+//         }
 
-        const query = `INSERT INTO Assignment (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+//         const query = `INSERT INTO Assignment (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
 
-        connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
+//         connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
 
-            if(err){
+//             if(err){
 
-                return res.status(500).json({ error: err.message });
+//                 return res.status(500).json({ error: err.message });
 
-            }
+//             }
 
-            if(results.affectedRows === 0){
+//             if(results.affectedRows === 0){
 
-                return res.status(404).json({ error: `No record inserted` });
+//                 return res.status(404).json({ error: `No record inserted` });
 
-            }
+//             }
 
-            res.status(200).json({
+//             res.status(200).json({
 
-                msg: `Successfully Uploaded`,
-                title: title,
-                subject: subject,
-                grade: grade,
-                file_path: filePath
+//                 msg: `Successfully Uploaded`,
+//                 title: title,
+//                 subject: subject,
+//                 grade: grade,
+//                 file_path: filePath
 
-            });
+//             });
 
-        });
+//         });
 
-    }catch(e){
+//     }catch(e){
 
-        console.log(e);
-        res.status(500).json({ error: 'Server error' });
+//         console.log(e);
+//         res.status(500).json({ error: 'Server error' });
 
-    }
+//     }
 
-});
+// });
 
 
-// ANCHOR - SEATWORKS UPLOAD
-app.post(`/upload/seatwork`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
+// // ANCHOR - SEATWORKS UPLOAD
+// app.post(`/upload/seatwork`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
 
-    try{
+//     try{
 
-        const { title, subject, grade } = req.body;
+//         const { title, subject, grade } = req.body;
 
-        const { Student_ID } = req.user;
+//         const { Student_ID } = req.user;
 
-        let filePath = null;
+//         let filePath = null;
 
-        if(req.file){
+//         if(req.file){
 
-            filePath = `artifacts/${req.file.filename}`;
+//             filePath = `artifacts/${req.file.filename}`;
 
-        }
+//         }
 
-        const query = `INSERT INTO SeatWork (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+//         const query = `INSERT INTO SeatWork (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
 
-        connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
+//         connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
 
-            if(err){
+//             if(err){
 
-                return res.status(500).json({ error: err.message });
+//                 return res.status(500).json({ error: err.message });
 
-            }
+//             }
 
-            if(results.affectedRows === 0){
+//             if(results.affectedRows === 0){
 
-                return res.status(404).json({ error: `No record inserted` });
+//                 return res.status(404).json({ error: `No record inserted` });
 
-            }
+//             }
 
-            res.status(200).json({
+//             res.status(200).json({
 
-                msg: `Successfully Uploaded`,
-                title: title,
-                subject: subject,
-                grade: grade,
-                file_path: filePath
+//                 msg: `Successfully Uploaded`,
+//                 title: title,
+//                 subject: subject,
+//                 grade: grade,
+//                 file_path: filePath
 
-            });
+//             });
 
-        });
+//         });
 
-    }catch(e){
+//     }catch(e){
 
-        console.log(e);
-        res.status(500).json({ error: 'Server error' });
+//         console.log(e);
+//         res.status(500).json({ error: 'Server error' });
 
-    }
+//     }
 
-});
+// });
 
 
-// ANCHOR - EXAM PAPERS UPLOAD
-app.post(`/upload/exampapers`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
+// // ANCHOR - EXAM PAPERS UPLOAD
+// app.post(`/upload/exampapers`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
 
-    try{
+//     try{
 
-        const { title, subject, grade } = req.body;
+//         const { title, subject, grade } = req.body;
 
-        const { Student_ID } = req.user;
+//         const { Student_ID } = req.user;
 
-        let filePath = null;
+//         let filePath = null;
 
-        if(req.file){
+//         if(req.file){
 
-            filePath = `artifacts/${req.file.filename}`;
+//             filePath = `artifacts/${req.file.filename}`;
 
-        }
+//         }
 
-        const query = `INSERT INTO ExamPapers (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+//         const query = `INSERT INTO ExamPapers (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
 
-        connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
+//         connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
 
-            if(err){
+//             if(err){
 
-                return res.status(500).json({ error: err.message });
+//                 return res.status(500).json({ error: err.message });
 
-            }
+//             }
 
-            if(results.affectedRows === 0){
+//             if(results.affectedRows === 0){
 
-                return res.status(404).json({ error: `No record inserted` });
+//                 return res.status(404).json({ error: `No record inserted` });
 
-            }
+//             }
 
-            res.status(200).json({
+//             res.status(200).json({
 
-                msg: `Successfully Uploaded`,
-                title: title,
-                subject: subject,
-                grade: grade,
-                file_path: filePath
+//                 msg: `Successfully Uploaded`,
+//                 title: title,
+//                 subject: subject,
+//                 grade: grade,
+//                 file_path: filePath
 
-            });
+//             });
 
-        });
+//         });
 
-    }catch(e){
+//     }catch(e){
 
-        console.log(e);
-        res.status(500).json({ error: 'Server error' });
+//         console.log(e);
+//         res.status(500).json({ error: 'Server error' });
 
-    }
+//     }
 
-});
+// });
 
 
 // ANCHOR - VIEW QUIZ ARTIFACTS
@@ -1714,7 +1697,7 @@ app.get(`/peers/list`, async (req, res) => {
                     Student_ID: student.Student_ID,
                     Name: `${student.First_Name} ${student.Last_Name}`,
                     Grade_Section: `${student.Grade_Level} ${student.Section}`,
-                    Profile_Picture: student.Profile_Picture ? `https://achieve-hub.onrender.com/${student.Profile_Picture}` : null
+                    Profile_Picture: student.Profile_Picture ? `http://localhost:5000/${student.Profile_Picture}` : null
 
                 };
 
@@ -1732,6 +1715,120 @@ app.get(`/peers/list`, async (req, res) => {
     }
 
 });
+
+app.post('/grade_section/add', verifyToken, async (req, res) => {
+
+    const { Grade_level, Class_Section } = req.body;
+    
+    try {
+
+        // First, check if Grade and Section already exists
+        const checkQuery = 'SELECT * FROM grade_and_sections WHERE Grade_level = ? && Class_Section = ?';
+
+        connection.query(checkQuery, [Grade_level, Class_Section], async (checkErr, checkResults) => {
+            if (checkErr) {
+                console.log(checkErr);
+                return res.status(500).json({ error: checkErr.message });
+            }
+            
+            // If Student_ID already exists, return an error
+            if (checkResults.length > 0) {
+                return res.status(409).json({ error: 'Grade Level and Class Section already registered' });
+            }
+            
+            // If Student_ID is unique, proceed with registration
+            
+            const insertQuery = `INSERT INTO grade_and_sections
+            (Grade_level, Class_Section) 
+            VALUES (?, ?)`;
+            
+            connection.query(insertQuery, 
+                [Grade_level, Class_Section], 
+                (err, results) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).json({ error: err.message });
+                    }
+                    res.status(200).json({ msg: `Successfully Added` });
+                }
+            );
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Server error during adding." });
+    }
+});
+
+app.get(`/subjects/list`, verifyToken, async (req, res) => {
+    
+    try{
+
+        const query = `SELECT * FROM subjects`;
+
+        connection.query(query, (err, rows) => {
+            
+            if(err){
+
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            res.status(200).json(rows);
+
+        });
+
+    }catch(error){
+
+        console.log(error);
+
+    }
+
+});
+
+
+app.post('/subject/add', verifyToken, async (req, res) => {
+
+    const { Subject_Name } = req.body;
+    
+    try {
+
+        // First, check if Subjects already exists
+        const checkQuery = 'SELECT * FROM subjects WHERE Subject_Name = ?';
+
+        connection.query(checkQuery, [Subject_Name], async (checkErr, checkResults) => {
+            if (checkErr) {
+                console.log(checkErr);
+                return res.status(500).json({ error: checkErr.message });
+            }
+            
+            // If Student_ID already exists, return an error
+            if (checkResults.length > 0) {
+                return res.status(409).json({ error: 'Subject already registered' });
+            }
+            
+            // If Student_ID is unique, proceed with registration
+            
+            const insertQuery = `INSERT INTO subjects
+            (Subject_Name) 
+            VALUES (?)`;
+            
+            connection.query(insertQuery, 
+                [Subject_Name], 
+                (err, results) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).json({ error: err.message });
+                    }
+                    res.status(200).json({ msg: `Successfully Added` });
+                }
+            );
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Server error during adding." });
+    }
+});
+
 
 
 // ANCHOR - SERVER API ========================================================================>
