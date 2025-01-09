@@ -457,45 +457,32 @@ app.delete(`/credentials/delete/:Student_ID`, verifyToken, async (req, res) => {
 // ANCHOR - STUDENT PAGE API =======================================================================>
 
 // STUDENT VIEW
-app.get(`/student_user/view/`, verifyToken, async (req, res) => {
-
-    try{
-
+app.get('/student_user/view/', verifyToken, async (req, res) => {
+    try {
         const { Student_ID } = req.user;
-
         const query = `SELECT * FROM student_user WHERE Student_ID = ?`;
-
+        
         connection.query(query, [Student_ID], async (err, rows) => {
-
-            if(err){
-
+            if (err) {
                 return res.status(500).json({ error: err.message });
-
             }
-
-            if(rows.length > 0){
-
-                res.status(200).json(rows[0]);
-
-            }else{
-
-                res.status(500).json({ msg: `Student with ID ${Student_ID} is not found` });
-
+            
+            if (rows.length > 0) {
+                // Don't modify the URL - return the Cloudinary URL directly
+                const student = rows[0];
+                // Remove any URL manipulation - just return the data as is
+                res.status(200).json(student);
+            } else {
+                res.status(404).json({ msg: `Student with ID ${Student_ID} is not found` });
             }
-
-            const student = rows[0];
-
-             student.Profile_Picture = student.Profile_Picture ? `https://achieve-hub.onrender.com/uploads${student.Profile_Picture}` : null;
         });
-
-
-    }catch(error){
-
-        console.log(error);
-
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
     }
-
 });
+
+
 
 
 // TO VIEW LIST OF STUDENT
