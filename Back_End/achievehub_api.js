@@ -607,7 +607,7 @@ app.put(`/student_user/update`, verifyToken, upload.single('image'), async (req,
 
          if(req.file){
 
-            profile = await uploadToCloudinary(req.file.filename);
+            profile = `uploads/${req.file.filename}`;
 
         }
 
