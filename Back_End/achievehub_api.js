@@ -604,10 +604,9 @@ app.put(`/student_user/update`, verifyToken, upload.single('image'), async (req,
 
         let profile = null;
 
-         if(req.file){
-
-            profile = `uploads/${req.file.filename}`;
-
+          if (req.file) {
+            // Upload to Cloudinary and get secure URL
+            profile = await uploadToCloudinary(req.file);
         }
 
         const query = `UPDATE student_user SET First_Name = ?, Middle_Name = ?, Last_Name = ?, Birthday = ?, \`Age\` = ?, Gender = ?, Email = ?, Grade_Level = ?, Section = ?, About_Me = ?, Profile_Picture = ? WHERE Student_ID = ?`;
