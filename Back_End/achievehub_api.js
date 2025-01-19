@@ -718,7 +718,7 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
                 query = `INSERT INTO quiz (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             case 'Performance_Task':
-                query = `INSERT INTO Performance_Task (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
+                query = `INSERT INTO performance_task (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             case 'Assignment':
                 query = `INSERT INTO Assignment (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
@@ -807,58 +807,45 @@ app.post(`/upload/quiz`, verifyToken, upload.single('file'), async (req, res) =>
 });
 
 // ANCHOR - PERFORMANCE TASK UPLOAD
-// app.post(`/upload/performance_task`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
+app.post(`/upload/performance_task`, verifyToken, upload.single('file'), async (req, res) => {
+    try {
+        const { title, subject, grade } = req.body;
+        const { Student_ID } = req.user;
 
-//     try{
+        let fileUrl = null;
+        let publicId = null;
 
-//         const { title, subject, grade } = req.body;
+        if (req.file) {
+            const fileUpload = await uploadToCloudinary(req.file);
+            fileUrl = fileUpload.secure_url;
+            publicId = fileUpload.public_id; // Get Cloudinary public_id
+        }
 
-//         const { Student_ID } = req.user;
+        const query = `
+            INSERT INTO performance_task (Title, Subject, Grade, File, Cloudinary_Public_ID, Student_ID)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
 
-//         let filePath = null;
-
-//         if(req.file){
-
-//             filePath = `artifacts/${req.file.filename}`;
-
-//         }
-
-//         const query = `INSERT INTO Performance_Task (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-
-//         connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
-
-//             if(err){
-
-//                 return res.status(500).json({ error: err.message });
-
-//             }
-
-//             if(results.affectedRows === 0){
-
-//                 return res.status(404).json({ error: `No record inserted` });
-
-//             }
-
-//             res.status(200).json({
-
-//                 msg: `Successfully Uploaded`,
-//                 title: title,
-//                 subject: subject,
-//                 grade: grade,
-//                 file_path: filePath
-
-//             });
-
-//         });
-
-//     }catch(e){
-
-//         console.log(e);
-//         res.status(500).json({ error: 'Server error' });
-
-//     }
-
-// });
+        connection.query(query, [title, subject, grade, fileUrl, publicId, Student_ID], (err, results) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ error: `No record inserted` });
+            }
+            res.status(200).json({
+                msg: `Successfully Uploaded`,
+                title: title,
+                subject: subject,
+                grade: grade,
+                file_url: fileUrl
+            });
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
 
 // ANCHOR - ASSIGNMENTS UPLOAD
@@ -1059,32 +1046,32 @@ app.get(`/view/quiz`, verifyToken, async (req, res) => {
 
 // ANCHOR - VIEW PERFORMANCE TASK
 app.get(`/view/performance_task`, verifyToken, async (req, res) => {
-
-    try{
-
+    try {
         const { Student_ID } = req.user;
+        console.log('Fetching performance task for Student_ID:', Student_ID);
 
         const query = `SELECT * FROM performance_task WHERE Student_ID = ?`;
 
         connection.query(query, [Student_ID], (err, results) => {
-
-            if(err){
-
+            if (err) {
+                console.error('Database error:', err);
                 return res.status(500).json({ error: err.message });
+            }
 
+            console.log('Query results:', results);
+
+            if (!results || results.length === 0) {
+                console.log('No performance task found for student');
+                return res.status(200).json([]);
             }
 
             res.status(200).json(results);
-
         });
 
-    }catch(e){
-
-        console.log(e);
+    } catch (e) {
+        console.error('Server error:', e);
         res.status(500).json({ error: 'Server error' });
-
     }
-
 });
 
 
