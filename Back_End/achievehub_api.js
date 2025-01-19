@@ -580,51 +580,102 @@ app.post(`/student_user/privacy`, verifyToken, async (req, res) => {
 
 // UPDATE STUDENT USER INFORMATION
 app.put(`/student_user/update`, verifyToken, upload.single('image'), async (req, res) => {
+    try {
+        const {
+            First_Name,
+            Middle_Name,
+            Last_Name,
+            Birthday,
+            Age,
+            Gender,
+            Email,
+            Grade_Level,
+            Section,
+            About_Me,
+            Student_ID,
+        } = req.body;
 
-    try{
-
-        const { First_Name, Middle_Name, Last_Name, Birthday, Age, Gender, Email, Grade_Level, Section, About_Me, Student_ID } = req.body;
-
-        if(!Student_ID){
-
+        // Validate Student_ID
+        if (!Student_ID) {
             return res.status(400).json({ error: `Student ID is required for updating` });
-
         }
 
-        let profile = null;
+        // Prepare variables for file handling
+        let profileUrl = null;
+        let publicId = null;
 
-          if (req.file) {
-            // Upload to Cloudinary and get secure URL
-            profile = await uploadToCloudinary(req.file);
+        // Upload image if provided
+        if (req.file) {
+            const fileUpload = await uploadToCloudinary(req.file); // Assuming uploadToCloudinary is a utility function
+            profileUrl = fileUpload.secure_url;
+            publicId = fileUpload.public_id; // Capture Cloudinary public_id
         }
 
-        const query = `UPDATE student_user SET First_Name = ?, Middle_Name = ?, Last_Name = ?, Birthday = ?, \`Age\` = ?, Gender = ?, Email = ?, Grade_Level = ?, Section = ?, About_Me = ?, Profile_Picture = ? WHERE Student_ID = ?`;
+        // Build dynamic query
+        const query = `
+            UPDATE student_user 
+            SET First_Name = ?, 
+                Middle_Name = ?, 
+                Last_Name = ?, 
+                Birthday = ?, 
+                \`Age\` = ?, 
+                Gender = ?, 
+                Email = ?, 
+                Grade_Level = ?, 
+                Section = ?, 
+                About_Me = ?, 
+                Profile_Picture = COALESCE(?, Profile_Picture),
+                Cloudinary_Public_ID = COALESCE(?, Cloudinary_Public_ID)
+            WHERE Student_ID = ?
+        `;
 
-        connection.query(query, [First_Name, Middle_Name, Last_Name, Birthday, Age, Gender, Email, Grade_Level, Section, About_Me, profile, Student_ID], (err, results) => {
-
-            if(err){
-
-                return res.status(500).json({ error: err.message });
-
+        // Execute query
+        connection.query(
+            query,
+            [
+                First_Name,
+                Middle_Name,
+                Last_Name,
+                Birthday,
+                Age,
+                Gender,
+                Email,
+                Grade_Level,
+                Section,
+                About_Me,
+                profileUrl,  // Only update if file uploaded
+                publicId,    // Only update if file uploaded
+                Student_ID,
+            ],
+            (err, results) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                if (results.affectedRows === 0) {
+                    return res.status(404).json({ error: `No student found with the provided ID` });
+                }
+                res.status(200).json({
+                    msg: `Successfully Updated`,
+                    student: {
+                        First_Name,
+                        Middle_Name,
+                        Last_Name,
+                        Birthday,
+                        Age,
+                        Gender,
+                        Email,
+                        Grade_Level,
+                        Section,
+                        About_Me,
+                        profileUrl, // Return updated profile image URL
+                    },
+                });
             }
-
-            if(results.affectedRows === 0){
-
-                return res.status(404).json({ error: `No student found with the provided ID` });
-
-            }
-
-            res.status(200).json({ msg: `Successfully Updated` });
-
-        });
-
-
-    }catch(error){
-
-        console.log(error);
-
+        );
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ error: 'Server error' });
     }
-
 });
 
 
