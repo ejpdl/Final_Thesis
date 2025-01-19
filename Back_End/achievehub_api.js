@@ -1017,32 +1017,32 @@ app.post(`/upload/quiz`, verifyToken, upload.single('file'), async (req, res) =>
 
 // ANCHOR - VIEW QUIZ ARTIFACTS
 app.get(`/view/quiz`, verifyToken, async (req, res) => {
-
-    try{
-
+    try {
         const { Student_ID } = req.user;
+        console.log('Fetching quizzes for Student_ID:', Student_ID);
 
-        const query = `SELECT * FROM Quiz WHERE Student_ID = ?`;
+        const query = `SELECT * FROM quiz WHERE Student_ID = ?`;
 
         connection.query(query, [Student_ID], (err, results) => {
-
-            if(err){
-
+            if (err) {
+                console.error('Database error:', err);
                 return res.status(500).json({ error: err.message });
+            }
 
+            console.log('Query results:', results);
+
+            if (!results || results.length === 0) {
+                console.log('No quizzes found for student');
+                return res.status(200).json([]);
             }
 
             res.status(200).json(results);
-
         });
 
-    }catch(e){
-
-        console.log(e);
+    } catch (e) {
+        console.error('Server error:', e);
         res.status(500).json({ error: 'Server error' });
-
     }
-
 });
 
 
