@@ -772,7 +772,7 @@ app.post(`/upload/quiz`, verifyToken, upload.single('file'), async (req, res) =>
             fileUrl = await uploadToCloudinary(req.file);
         }
 
-        const query = `INSERT INTO Quiz (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+        const query = `INSERT INTO quiz (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
         
         connection.query(query, [title, subject, grade, fileUrl, Student_ID], (err, results) => {
             if (err) {
