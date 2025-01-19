@@ -67,16 +67,18 @@ const upload = multer({ storage: storage });
 // Helper function for Cloudinary upload
 async function uploadToCloudinary(file) {
     try {
-        // Convert buffer to base64
         const b64 = Buffer.from(file.buffer).toString('base64');
         const dataURI = "data:" + file.mimetype + ";base64," + b64;
-        
+
         const result = await cloudinary.uploader.upload(dataURI, {
             resource_type: 'auto',
-            folder: 'artifacts' // This will create a folder in your Cloudinary account
+            folder: 'artifacts'
         });
-        
-        return result.secure_url;
+
+        return {
+            secure_url: result.secure_url, // Public URL to display the file
+            public_id: result.public_id   // Unique ID to manage the file in Cloudinary
+        };
     } catch (error) {
         console.error('Cloudinary upload error:', error);
         throw error;
@@ -766,15 +768,22 @@ app.post(`/upload/quiz`, verifyToken, upload.single('file'), async (req, res) =>
     try {
         const { title, subject, grade } = req.body;
         const { Student_ID } = req.user;
+
         let fileUrl = null;
+        let publicId = null;
 
         if (req.file) {
-            fileUrl = await uploadToCloudinary(req.file);
+            const fileUpload = await uploadToCloudinary(req.file);
+            fileUrl = fileUpload.secure_url;
+            publicId = fileUpload.public_id; // Get Cloudinary public_id
         }
 
-        const query = `INSERT INTO quiz (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-        
-        connection.query(query, [title, subject, grade, fileUrl, Student_ID], (err, results) => {
+        const query = `
+            INSERT INTO quiz (Title, Subject, Grade, File, Cloudinary_Public_ID, Student_ID)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+
+        connection.query(query, [title, subject, grade, fileUrl, publicId, Student_ID], (err, results) => {
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
@@ -1297,23 +1306,38 @@ app.get(`/view/classmate/artifacts/:Student_ID`, verifyToken, async (req, res) =
 
 // ANCHOR - DELETE QUIZ
 app.delete(`/delete/Quiz`, verifyToken, async (req, res) => {
-
     const { id } = req.body;
 
-    const query = `DELETE FROM quiz WHERE id = ?`;
-
-    connection.query(query, [id], (err, rows) => {
-
-        if(err){
-
-            return res.status(500).json({ error: err.message });
-
+    // Fetch Cloudinary public_id
+    const fetchQuery = 'SELECT Cloudinary_Public_ID FROM quiz WHERE id = ?';
+    connection.query(fetchQuery, [id], async (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error fetching file details.' });
         }
 
-        res.status(200).json({ msg: `Successfully Deleted!` });
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'File not found in database.' });
+        }
 
+        const publicId = rows[0].Cloudinary_Public_ID;
+
+        // Remove file from Cloudinary
+        try {
+            await cloudinary.uploader.destroy(publicId);
+        } catch (cloudinaryError) {
+            console.error('Cloudinary deletion error:', cloudinaryError);
+            return res.status(500).json({ error: 'Error deleting file from Cloudinary.' });
+        }
+
+        // Remove record from database
+        const deleteQuery = 'DELETE FROM quiz WHERE id = ?';
+        connection.query(deleteQuery, [id], (deleteErr) => {
+            if (deleteErr) {
+                return res.status(500).json({ error: 'Error deleting record from database.' });
+            }
+            res.status(200).json({ msg: 'File and record deleted successfully!' });
+        });
     });
-
 });
 
 
