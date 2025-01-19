@@ -864,7 +864,7 @@ app.post(`/upload/assignment`, verifyToken, upload.single('file'), async (req, r
         }
 
         const query = `
-            INSERT INTO assingment (Title, Subject, Grade, File, Cloudinary_Public_ID, Student_ID)
+            INSERT INTO assignment (Title, Subject, Grade, File, Cloudinary_Public_ID, Student_ID)
             VALUES (?, ?, ?, ?, ?, ?)
         `;
 
