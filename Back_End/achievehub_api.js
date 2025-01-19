@@ -721,7 +721,7 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
                 query = `INSERT INTO performance_task (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             case 'Assignment':
-                query = `INSERT INTO Assignment (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
+                query = `INSERT INTO assignment (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             case 'SeatWork':
                 query = `INSERT INTO SeatWork (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
@@ -849,58 +849,45 @@ app.post(`/upload/performance_task`, verifyToken, upload.single('file'), async (
 
 
 // ANCHOR - ASSIGNMENTS UPLOAD
-// app.post(`/upload/assignment`, verifyToken, uploadArtifacts.single('file'), async (req, res) => {
+app.post(`/upload/assignment`, verifyToken, upload.single('file'), async (req, res) => {
+    try {
+        const { title, subject, grade } = req.body;
+        const { Student_ID } = req.user;
 
-//     try{
+        let fileUrl = null;
+        let publicId = null;
 
-//         const { title, subject, grade } = req.body;
+        if (req.file) {
+            const fileUpload = await uploadToCloudinary(req.file);
+            fileUrl = fileUpload.secure_url;
+            publicId = fileUpload.public_id; // Get Cloudinary public_id
+        }
 
-//         const { Student_ID } = req.user;
+        const query = `
+            INSERT INTO assingment (Title, Subject, Grade, File, Cloudinary_Public_ID, Student_ID)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
 
-//         let filePath = null;
-
-//         if(req.file){
-
-//             filePath = `artifacts/${req.file.filename}`;
-
-//         }
-
-//         const query = `INSERT INTO Assignment (Title, Subject, Grade, File, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-
-//         connection.query(query, [title, subject, grade, filePath, Student_ID], (err, results) => {
-
-//             if(err){
-
-//                 return res.status(500).json({ error: err.message });
-
-//             }
-
-//             if(results.affectedRows === 0){
-
-//                 return res.status(404).json({ error: `No record inserted` });
-
-//             }
-
-//             res.status(200).json({
-
-//                 msg: `Successfully Uploaded`,
-//                 title: title,
-//                 subject: subject,
-//                 grade: grade,
-//                 file_path: filePath
-
-//             });
-
-//         });
-
-//     }catch(e){
-
-//         console.log(e);
-//         res.status(500).json({ error: 'Server error' });
-
-//     }
-
-// });
+        connection.query(query, [title, subject, grade, fileUrl, publicId, Student_ID], (err, results) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ error: `No record inserted` });
+            }
+            res.status(200).json({
+                msg: `Successfully Uploaded`,
+                title: title,
+                subject: subject,
+                grade: grade,
+                file_url: fileUrl
+            });
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
 
 // // ANCHOR - SEATWORKS UPLOAD
@@ -1077,32 +1064,32 @@ app.get(`/view/performance_task`, verifyToken, async (req, res) => {
 
 // ANCHOR - VIEW ASSIGNMENT
 app.get(`/view/assignment`, verifyToken, async (req, res) => {
-
-    try{
-
+    try {
         const { Student_ID } = req.user;
+        console.log('Fetching assignment for Student_ID:', Student_ID);
 
-        const query = `SELECT * FROM Assignment WHERE Student_ID = ?`;
+        const query = `SELECT * FROM assignment WHERE Student_ID = ?`;
 
         connection.query(query, [Student_ID], (err, results) => {
-
-            if(err){
-
+            if (err) {
+                console.error('Database error:', err);
                 return res.status(500).json({ error: err.message });
+            }
 
+            console.log('Query results:', results);
+
+            if (!results || results.length === 0) {
+                console.log('No performance task found for student');
+                return res.status(200).json([]);
             }
 
             res.status(200).json(results);
-
         });
 
-    }catch(e){
-
-        console.log(e);
+    } catch (e) {
+        console.error('Server error:', e);
         res.status(500).json({ error: 'Server error' });
-
     }
-
 });
 
 
@@ -1332,47 +1319,76 @@ app.delete(`/delete/Quiz`, verifyToken, async (req, res) => {
 
 // ANCHOR - DELETE PERFORMANCE TASK
 app.delete(`/delete/performance_task`, verifyToken, async (req, res) => {
-
     const { id } = req.body;
 
-    const query = `DELETE FROM performance_task WHERE id = ?`;
-
-    connection.query(query, [id], (err, rows) => {
-
-        if(err){
-
-            return res.status(500).json({ error: err.message });
-
+    // Fetch Cloudinary public_id
+    const fetchQuery = 'SELECT Cloudinary_Public_ID FROM performance_task WHERE id = ?';
+    connection.query(fetchQuery, [id], async (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error fetching file details.' });
         }
 
-        res.status(200).json({ msg: `Successfully Deleted!` });
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'File not found in database.' });
+        }
 
+        const publicId = rows[0].Cloudinary_Public_ID;
+
+        // Remove file from Cloudinary
+        try {
+            await cloudinary.uploader.destroy(publicId);
+        } catch (cloudinaryError) {
+            console.error('Cloudinary deletion error:', cloudinaryError);
+            return res.status(500).json({ error: 'Error deleting file from Cloudinary.' });
+        }
+
+        // Remove record from database
+        const deleteQuery = 'DELETE FROM performance_task WHERE id = ?';
+        connection.query(deleteQuery, [id], (deleteErr) => {
+            if (deleteErr) {
+                return res.status(500).json({ error: 'Error deleting record from database.' });
+            }
+            res.status(200).json({ msg: 'File and record deleted successfully!' });
+        });
     });
-
 });
 
 
 // ANCHOR - DELETE ASSIGNMENT
 app.delete(`/delete/assignment`, verifyToken, async (req, res) => {
-
     const { id } = req.body;
 
-    const query = `DELETE FROM Assignment WHERE id = ?`;
-
-    connection.query(query, [id], (err, rows) => {
-
-        if(err){
-
-            return res.status(500).json({ error: err.message });
-
+    // Fetch Cloudinary public_id
+    const fetchQuery = 'SELECT Cloudinary_Public_ID FROM assignment WHERE id = ?';
+    connection.query(fetchQuery, [id], async (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error fetching file details.' });
         }
 
-        res.status(200).json({ msg: `Successfully Deleted!` });
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'File not found in database.' });
+        }
 
+        const publicId = rows[0].Cloudinary_Public_ID;
+
+        // Remove file from Cloudinary
+        try {
+            await cloudinary.uploader.destroy(publicId);
+        } catch (cloudinaryError) {
+            console.error('Cloudinary deletion error:', cloudinaryError);
+            return res.status(500).json({ error: 'Error deleting file from Cloudinary.' });
+        }
+
+        // Remove record from database
+        const deleteQuery = 'DELETE FROM assignment WHERE id = ?';
+        connection.query(deleteQuery, [id], (deleteErr) => {
+            if (deleteErr) {
+                return res.status(500).json({ error: 'Error deleting record from database.' });
+            }
+            res.status(200).json({ msg: 'File and record deleted successfully!' });
+        });
     });
-
 });
-
 
 // ANCHOR - DELETE SEATWORK
 app.delete(`/delete/seatwork`, verifyToken, async (req, res) => {
