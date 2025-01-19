@@ -1185,31 +1185,31 @@ app.get(`/view/classmate/artifacts/:Student_ID`, verifyToken, async (req, res) =
 
     const quiz = `
     SELECT q.*, s.First_Name, s.Last_Name 
-    FROM Quiz q 
+    FROM quiz q 
     JOIN student_user s ON q.Student_ID = s.Student_ID 
     WHERE q.Student_ID = ?`;
 
     const performance = `
     SELECT p.*, s.First_Name, s.Last_Name 
-    FROM Performance_Task p 
+    FROM performance_task p 
     JOIN student_user s ON p.Student_ID = s.Student_ID 
     WHERE p.Student_ID = ?`;
 
     const assignment = `
     SELECT a.*, s.First_Name, s.Last_Name 
-    FROM Assignment a 
+    FROM assignment a 
     JOIN student_user s ON a.Student_ID = s.Student_ID 
     WHERE a.Student_ID = ?`;
 
     const seatwork = `
     SELECT sw.*, s.First_Name, s.Last_Name 
-    FROM Seatwork sw 
+    FROM seatwork sw 
     JOIN student_user s ON sw.Student_ID = s.Student_ID 
     WHERE sw.Student_ID = ?`;
 
     const exampaper = `
     SELECT ep.*, s.First_Name, s.Last_Name 
-    FROM ExamPapers ep 
+    FROM exampapers ep 
     JOIN student_user s ON ep.Student_ID = s.Student_ID 
     WHERE ep.Student_ID = ?`;
 
