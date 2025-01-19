@@ -714,7 +714,7 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
         // Your existing material type logic
         switch (material_type) {
             case 'Quiz':
-                query = `INSERT INTO Quiz (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                query = `INSERT INTO quiz (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
                 break;
             case 'Performance_Task':
                 query = `INSERT INTO Performance_Task (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
