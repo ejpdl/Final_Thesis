@@ -686,9 +686,9 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
         console.log('File:', req.file);
 
         const { title, subject, material_type, grade } = req.body;
-        let fileUrl = null;
+        const { Student_ID } = req.user;
+        let fileDetails = null;
 
-        // Check if file exists in request
         if (!req.file) {
             console.log('No file in request');
             return res.status(400).json({ error: 'No file uploaded' });
@@ -696,46 +696,45 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
 
         try {
             console.log('Attempting to upload to Cloudinary');
-            // Upload file to Cloudinary using your existing function
-            fileUrl = await uploadToCloudinary(req.file);
-            console.log('Cloudinary upload successful:', fileUrl);
+            fileDetails = await uploadToCloudinary(req.file); // Upload to Cloudinary
+            console.log('Cloudinary upload successful:', fileDetails);
         } catch (uploadError) {
-            console.error('Detailed Cloudinary upload error:', uploadError);
+            console.error('Cloudinary upload error:', uploadError);
             return res.status(500).json({ error: `Failed to upload file: ${uploadError.message}` });
         }
 
-        // Verify all required data is present
-        if (!title || !subject || !material_type || !grade || !req.user?.Student_ID) {
-            console.log('Missing required data:', { title, subject, material_type, grade, studentId: req.user?.Student_ID });
+        // Ensure required data is present
+        if (!title || !subject || !material_type || !grade || !Student_ID) {
+            console.log('Missing required data:', { title, subject, material_type, grade, studentId: Student_ID });
             return res.status(400).json({ error: 'Missing required data' });
         }
 
         let query;
         let params;
 
-        // Your existing material type logic
+        // Material type logic with Cloudinary `public_id`
         switch (material_type) {
-            case 'Quiz':
-                query = `INSERT INTO quiz (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+            case 'quiz':
+                query = `INSERT INTO quiz (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             case 'Performance_Task':
-                query = `INSERT INTO Performance_Task (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                query = `INSERT INTO Performance_Task (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             case 'Assignment':
-                query = `INSERT INTO Assignment (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                query = `INSERT INTO Assignment (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             case 'SeatWork':
-                query = `INSERT INTO SeatWork (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                query = `INSERT INTO SeatWork (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             case 'ExamPapers':
-                query = `INSERT INTO ExamPapers (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                query = `INSERT INTO ExamPapers (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             default:
                 console.log('Invalid material type:', material_type);
                 return res.status(400).json({ error: `Invalid Material Type` });
         }
 
-        params = [title, subject, fileUrl, grade, req.user.Student_ID];
+        params = [title, subject, fileDetails.secure_url, fileDetails.public_id, grade, Student_ID];
         console.log('Executing query:', query);
         console.log('With parameters:', params);
 
@@ -753,7 +752,8 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
                 msg: `Successfully Uploaded`,
                 title: title,
                 subject: subject,
-                file_url: fileUrl,
+                file_url: fileDetails.secure_url,
+                public_id: fileDetails.public_id,
                 grade: grade,
                 material_type: material_type
             });
@@ -763,6 +763,8 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
         res.status(500).json({ error: error.message || 'Server error' });
     }
 });
+
+
 // ANCHOR - QUIZ UPLOAD
 app.post(`/upload/quiz`, verifyToken, upload.single('file'), async (req, res) => {
     try {
