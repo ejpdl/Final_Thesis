@@ -714,7 +714,7 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
 
         // Material type logic with Cloudinary `public_id`
         switch (material_type) {
-            case 'quiz':
+            case 'Quiz':
                 query = `INSERT INTO quiz (Title, Subject, File, Cloudinary_Public_ID, Grade, Student_ID) VALUES (?, ?, ?, ?, ?, ?)`;
                 break;
             case 'Performance_Task':
