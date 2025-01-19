@@ -679,20 +679,33 @@ app.get(`/classmate/view/:Student_ID`, verifyToken, async (req, res) => {
 //ANCHOR - UPLOAD THE IMAGE IN THE ARTIFACTS (GENERAL) ===========================================>
 app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, res) => {
     try {
+        console.log('Starting upload process');
+        console.log('Request body:', req.body);
+        console.log('File:', req.file);
+
         const { title, subject, material_type, grade } = req.body;
         let fileUrl = null;
 
         // Check if file exists in request
         if (!req.file) {
+            console.log('No file in request');
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
         try {
+            console.log('Attempting to upload to Cloudinary');
             // Upload file to Cloudinary using your existing function
             fileUrl = await uploadToCloudinary(req.file);
+            console.log('Cloudinary upload successful:', fileUrl);
         } catch (uploadError) {
-            console.error('Error uploading to Cloudinary:', uploadError);
-            return res.status(500).json({ error: 'Failed to upload file' });
+            console.error('Detailed Cloudinary upload error:', uploadError);
+            return res.status(500).json({ error: `Failed to upload file: ${uploadError.message}` });
+        }
+
+        // Verify all required data is present
+        if (!title || !subject || !material_type || !grade || !req.user?.Student_ID) {
+            console.log('Missing required data:', { title, subject, material_type, grade, studentId: req.user?.Student_ID });
+            return res.status(400).json({ error: 'Missing required data' });
         }
 
         let query;
@@ -716,18 +729,24 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
                 query = `INSERT INTO ExamPapers (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
                 break;
             default:
+                console.log('Invalid material type:', material_type);
                 return res.status(400).json({ error: `Invalid Material Type` });
         }
 
         params = [title, subject, fileUrl, grade, req.user.Student_ID];
+        console.log('Executing query:', query);
+        console.log('With parameters:', params);
 
         connection.query(query, params, (err, results) => {
             if (err) {
+                console.error('Database error:', err);
                 return res.status(500).json({ error: err.message });
             }
             if (results.affectedRows === 0) {
+                console.log('No rows affected');
                 return res.status(404).json({ error: `No record inserted` });
             }
+            console.log('Successfully inserted record');
             res.status(200).json({
                 msg: `Successfully Uploaded`,
                 title: title,
@@ -738,11 +757,10 @@ app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, re
             });
         });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Detailed error:', error);
+        res.status(500).json({ error: error.message || 'Server error' });
     }
 });
-
 // ANCHOR - QUIZ UPLOAD
 app.post(`/upload/quiz`, verifyToken, upload.single('file'), async (req, res) => {
     try {
