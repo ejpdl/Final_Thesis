@@ -677,59 +677,71 @@ app.get(`/classmate/view/:Student_ID`, verifyToken, async (req, res) => {
 
 
 //ANCHOR - UPLOAD THE IMAGE IN THE ARTIFACTS (GENERAL) ===========================================>
-    app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, res) => {
-        try {
-            const { title, subject, material_type, grade } = req.body;
-            let fileUrl = null;
-    
-            if (req.file) {
-                fileUrl = await uploadToCloudinary(req.file);
-            }
-    
-            let query;
-            let params;
-    
-            if (material_type === 'Quiz') {
-                query = `INSERT INTO Quiz (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-                params = [title, subject, fileUrl, grade, req.user.Student_ID];
-            } else if (material_type === 'Performance_Task') {
-                query = `INSERT INTO Performance_Task (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-                params = [title, subject, fileUrl, grade, req.user.Student_ID];
-            } else if (material_type === 'Assignment') {
-                query = `INSERT INTO Assignment (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-                params = [title, subject, fileUrl, grade, req.user.Student_ID];
-            } else if (material_type === 'SeatWork') {
-                query = `INSERT INTO SeatWork (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-                params = [title, subject, fileUrl, grade, req.user.Student_ID];
-            } else if (material_type === 'ExamPapers') {
-                query = `INSERT INTO ExamPapers (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
-                params = [title, subject, fileUrl, grade, req.user.Student_ID];
-            } else {
-                return res.status(400).json({ error: `Invalid Material Type` });
-            }
-    
-            connection.query(query, params, (err, results) => {
-                if (err) {
-                    return res.status(500).json({ error: err.message });
-                }
-                if (results.affectedRows === 0) {
-                    return res.status(404).json({ error: `No record inserted` });
-                }
-                res.status(200).json({
-                    msg: `Successfully Uploaded`,
-                    title: title,
-                    subject: subject,
-                    file_url: fileUrl,
-                    grade: grade,
-                    material_type: material_type
-                });
-            });
-        } catch (e) {
-            console.log(e);
-            res.status(500).json({ error: 'Server error' });
-        }
-    });
+app.post(`/upload/artifacts`, verifyToken, upload.single('file'), async (req, res) => {
+    try {
+        const { title, subject, material_type, grade } = req.body;
+        let fileUrl = null;
 
+        // Check if file exists in request
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        try {
+            // Upload file to Cloudinary using your existing function
+            fileUrl = await uploadToCloudinary(req.file);
+        } catch (uploadError) {
+            console.error('Error uploading to Cloudinary:', uploadError);
+            return res.status(500).json({ error: 'Failed to upload file' });
+        }
+
+        let query;
+        let params;
+
+        // Your existing material type logic
+        switch (material_type) {
+            case 'Quiz':
+                query = `INSERT INTO Quiz (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                break;
+            case 'Performance_Task':
+                query = `INSERT INTO Performance_Task (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                break;
+            case 'Assignment':
+                query = `INSERT INTO Assignment (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                break;
+            case 'SeatWork':
+                query = `INSERT INTO SeatWork (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                break;
+            case 'ExamPapers':
+                query = `INSERT INTO ExamPapers (Title, Subject, File, Grade, Student_ID) VALUES (?, ?, ?, ?, ?)`;
+                break;
+            default:
+                return res.status(400).json({ error: `Invalid Material Type` });
+        }
+
+        params = [title, subject, fileUrl, grade, req.user.Student_ID];
+
+        connection.query(query, params, (err, results) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ error: `No record inserted` });
+            }
+            res.status(200).json({
+                msg: `Successfully Uploaded`,
+                title: title,
+                subject: subject,
+                file_url: fileUrl,
+                grade: grade,
+                material_type: material_type
+            });
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
 // ANCHOR - QUIZ UPLOAD
 app.post(`/upload/quiz`, verifyToken, upload.single('file'), async (req, res) => {
