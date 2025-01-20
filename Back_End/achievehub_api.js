@@ -2069,7 +2069,7 @@ app.post('/subject/add', verifyToken, async (req, res) => {
 
 
 app.post('/credentials/add', verifyToken, async (req, res) => {
-    const { LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, role } = req.body;
+    const { Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, role } = req.body;
     
     if (!['admin', 'teacher', 'student'].includes(role)) {
         return res.status(400).json({ error: 'Invalid role.' });
@@ -2094,11 +2094,11 @@ app.post('/credentials/add', verifyToken, async (req, res) => {
             const hashedPassword = await bcrypt.hash(Hash_Password, salt);
             
             const insertQuery = `INSERT INTO login_credentials 
-            (LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, Role) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            (Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, Role) 
+            VALUES ( ?, ?, ?, ?, ?, ?, ?)`;
             
             connection.query(insertQuery, 
-                [LogIn_ID, Student_ID, hashedPassword, First_Name, Last_Name, Grade, Section, role], 
+                [Student_ID, hashedPassword, First_Name, Last_Name, Grade, Section, role], 
                 (err, results) => {
                     if (err) {
                         console.log(err);
@@ -2112,6 +2112,33 @@ app.post('/credentials/add', verifyToken, async (req, res) => {
         console.log(error);
         res.status(500).json({ error: "Server error during registration." });
     }
+});
+
+
+app.get(`/credentials/list`, verifyToken, async (req, res) => {
+
+    try{
+
+        const query = `SELECT * FROM login_credentials`;
+
+        connection.query(query, (err, rows) => {
+
+            if(err){
+
+                res.status(400).json({ error: err.message });
+
+            }
+
+            res.status(200).json(rows);
+
+        });
+
+    }catch(error){
+
+        console.log(error);
+
+    }
+
 });
 
 
