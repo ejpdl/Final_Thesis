@@ -1927,6 +1927,146 @@ app.post('/subject/add', verifyToken, async (req, res) => {
     }
 });
 
+app.post('/grade_section/add', verifyToken, async (req, res) => {
+
+    const { Grade_level, Class_Section } = req.body;
+    
+    try {
+
+        // First, check if Grade and Section already exists
+        const checkQuery = 'SELECT * FROM grade_and_sections WHERE Grade_level = ? && Class_Section = ?';
+
+        connection.query(checkQuery, [Grade_level, Class_Section], async (checkErr, checkResults) => {
+            if (checkErr) {
+                console.log(checkErr);
+                return res.status(500).json({ error: checkErr.message });
+            }
+            
+            // If Student_ID already exists, return an error
+            if (checkResults.length > 0) {
+                return res.status(409).json({ error: 'Grade Level and Class Section already registered' });
+            }
+            
+            // If Student_ID is unique, proceed with registration
+            
+            const insertQuery = `INSERT INTO grade_and_sections
+            (Grade_level, Class_Section) 
+            VALUES (?, ?)`;
+            
+            connection.query(insertQuery, 
+                [Grade_level, Class_Section], 
+                (err, results) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).json({ error: err.message });
+                    }
+                    res.status(200).json({ msg: `Successfully Added` });
+                }
+            );
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Server error during adding." });
+    }
+});
+
+
+app.get(`/grade_and_section/list`, verifyToken, async (req, res) => {
+    
+    try{
+
+        const query = `SELECT * FROM grade_and_sections`;
+
+        connection.query(query, (err, rows) => {
+            
+            if(err){
+
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            res.status(200).json(rows);
+
+        });
+
+    }catch(error){
+
+        console.log(error);
+
+    }
+
+});
+
+app.get(`/subjects/list`, verifyToken, async (req, res) => {
+    
+    try{
+
+        const query = `SELECT * FROM subjects`;
+
+        connection.query(query, (err, rows) => {
+            
+            if(err){
+
+                return res.status(500).json({ error: err.message });
+
+            }
+
+            res.status(200).json(rows);
+
+        });
+
+    }catch(error){
+
+        console.log(error);
+
+    }
+
+});
+
+
+app.post('/subject/add', verifyToken, async (req, res) => {
+
+    const { Subject_Name } = req.body;
+    
+    try {
+
+        // First, check if Subjects already exists
+        const checkQuery = 'SELECT * FROM subjects WHERE Subject_Name = ?';
+
+        connection.query(checkQuery, [Subject_Name], async (checkErr, checkResults) => {
+            if (checkErr) {
+                console.log(checkErr);
+                return res.status(500).json({ error: checkErr.message });
+            }
+            
+            // If Student_ID already exists, return an error
+            if (checkResults.length > 0) {
+                return res.status(409).json({ error: 'Subject already registered' });
+            }
+            
+            // If Student_ID is unique, proceed with registration
+            
+            const insertQuery = `INSERT INTO subjects
+            (Subject_Name) 
+            VALUES (?)`;
+            
+            connection.query(insertQuery, 
+                [Subject_Name], 
+                (err, results) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).json({ error: err.message });
+                    }
+                    res.status(200).json({ msg: `Successfully Added` });
+                }
+            );
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Server error during adding." });
+    }
+});
+
 
 
 // ANCHOR - SERVER API ========================================================================>
