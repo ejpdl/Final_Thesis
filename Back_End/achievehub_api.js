@@ -2068,6 +2068,52 @@ app.post('/subject/add', verifyToken, async (req, res) => {
 });
 
 
+app.post('/credentials/add', verifyToken, async (req, res) => {
+    const { LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, role } = req.body;
+    
+    if (!['admin', 'teacher', 'student'].includes(role)) {
+        return res.status(400).json({ error: 'Invalid role.' });
+    }
+    
+    try {
+        // First, check if Student_ID already exists
+        const checkQuery = 'SELECT * FROM login_credentials WHERE Student_ID = ?';
+        connection.query(checkQuery, [Student_ID], async (checkErr, checkResults) => {
+            if (checkErr) {
+                console.log(checkErr);
+                return res.status(500).json({ error: checkErr.message });
+            }
+            
+            // If Student_ID already exists, return an error
+            if (checkResults.length > 0) {
+                return res.status(409).json({ error: 'Student ID already registered' });
+            }
+            
+            // If Student_ID is unique, proceed with registration
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(Hash_Password, salt);
+            
+            const insertQuery = `INSERT INTO login_credentials 
+            (LogIn_ID, Student_ID, Hash_Password, First_Name, Last_Name, Grade, Section, Role) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            
+            connection.query(insertQuery, 
+                [LogIn_ID, Student_ID, hashedPassword, First_Name, Last_Name, Grade, Section, role], 
+                (err, results) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).json({ error: err.message });
+                    }
+                    res.status(200).json({ msg: `User registered as ${role}` });
+                }
+            );
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Server error during registration." });
+    }
+});
+
 
 // ANCHOR - SERVER API ========================================================================>
 const PORT = process.env.PORT || 5000;
